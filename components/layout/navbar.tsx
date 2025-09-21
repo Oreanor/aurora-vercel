@@ -14,9 +14,9 @@ export default function Navbar({ className = "" }: Props) {
 
   const navLinks = [
     { href: "/", label: "Home" },
+    { href: "/tree", label: "Tree" },
     { href: "/chatroom", label: "Chatroom" },
     { href: "/family", label: "Family" },
-    { href: "/tree", label: "Tree" },
     { href: "/stories", label: "My Stories" },
   ];
 
@@ -54,15 +54,13 @@ export default function Navbar({ className = "" }: Props) {
           <div className="hidden md:flex items-center space-x-3">
             <Link
               href="/signin"
-              className="px-4 py-2 text-sm font-medium text-white rounded-lg transition-colors duration-200"
-              style={{ backgroundColor: "hsl(142, 76%, 55%)" }}
+              className="px-4 py-2 text-sm font-medium text-white rounded-lg transition-colors duration-200 bg-green-400"
             >
               Sign In
             </Link>
             <Link
               href="/signup"
-              className="px-4 py-2 text-sm font-medium text-white rounded-lg transition-colors duration-200"
-              style={{ backgroundColor: "hsl(142, 76%, 55%)" }}
+              className="px-4 py-2 text-sm font-medium text-white rounded-lg transition-colors duration-200 bg-green-400"
             >
               Sign Up
             </Link>
@@ -99,16 +97,14 @@ export default function Navbar({ className = "" }: Props) {
               <div className="pt-4 space-y-2">
                 <Link
                   href="/signin"
-                  className="block w-full px-4 py-2 text-sm font-medium text-white rounded-lg transition-colors duration-200 text-center"
-                  style={{ backgroundColor: "hsl(142, 76%, 55%)" }}
+                  className="block w-full px-4 py-2 text-sm font-medium text-white rounded-lg transition-colors duration-200 text-center bg-green-400"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
                   Sign In
                 </Link>
                 <Link
                   href="/signup"
-                  className="block w-full px-4 py-2 text-sm font-medium text-white rounded-lg transition-colors duration-200 text-center"
-                  style={{ backgroundColor: "hsl(142, 76%, 55%)" }}
+                  className="block w-full px-4 py-2 text-sm font-medium text-white rounded-lg transition-colors duration-200 text-center bg-green-400"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
                   Sign Up
