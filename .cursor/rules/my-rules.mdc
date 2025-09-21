@@ -1,0 +1,24 @@
+---
+description: "Project rules for Next.js + Tailwind + shadcn/ui"
+globs:
+  - "**/*.{ts,tsx}"
+alwaysApply: true
+rules:
+  - "Использовать App Router (/app), не pages/"
+  - "Компоненты хранить в components/ui, components/layout, components/features"
+  - "Типы складывать в один файл types.ts на сущность или в /types"
+  - "Стилизация только TailwindCSS, без *.css, *.scss, styled-components, emotion"
+  - "Для вариаций компонентов использовать cva (class-variance-authority)"
+  - "Использовать только shadcn/ui, Radix только через shadcn/ui"
+  - "Импорты через @/, без ../../../"
+  - "Порядок импортов: React/Next → внешние пакеты → внутренние (@/)"
+  - "Всегда TypeScript, пропсы через интерфейс Props"
+  - "Запросы к API — в /lib или /services, не в UI-компонентах"
+  - "Не использовать fetch прямо в компонентах"
+  - "Для кэширования данных — React Query или SWR"
+  - "Ветки feature/* и fix/*"
+  - "Коммиты в стиле feat: ..., fix: ..."
+  - "ESLint + Prettier обязательны"
+  - "Для иконок использовать lucide-react"
+  - "Конфиги tailwind.config.ts, eslint, tsconfig держать в корне"
+---
