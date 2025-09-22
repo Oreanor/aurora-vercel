@@ -21,14 +21,19 @@ export default function SignInPage() {
     e.preventDefault();
     setIsLoading(true);
     
-    // Здесь будет логика отправки magic link
-    console.log('Sending magic link to:', email);
-    
-    // Имитация загрузки
-    setTimeout(() => {
-      setIsLoading(false);
+    try {
+      await signIn('email', { 
+        email, 
+        redirect: false,
+        callbackUrl: '/'
+      });
       alert('Magic link sent to your email!');
-    }, 2000);
+    } catch (error) {
+      console.error('Error sending magic link:', error);
+      alert('Error sending magic link. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleGoogleSignIn = () => {
