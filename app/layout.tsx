@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/layout/navbar";
+import AuthSessionProvider from "@/components/providers/session-provider";
 import ScrollToTop from "@/components/layout/scroll-to-top";
 
 const geistSans = Geist({
@@ -30,10 +31,12 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <ScrollToTop />
-        <Navbar />
-        <main className="pt-15">
-          {children}
-        </main>
+        <AuthSessionProvider>
+          <Navbar />
+          <main className="h-[calc(100vh-60px)] mt-15 overflow-y-auto">
+            {children}
+          </main>
+        </AuthSessionProvider>
       </body>
     </html>
   );

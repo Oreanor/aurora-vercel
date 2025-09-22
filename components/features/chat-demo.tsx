@@ -98,7 +98,7 @@ export default function ChatDemo({ className = "" }: Props) {
         {/* CTA Below Chat */}
         <div className="text-center mt-8">
           <Link
-            href="/signup"
+            href="/signin"
             className="inline-block px-8 py-3 text-lg font-semibold text-white rounded-xl transition-all duration-300 hover:scale-105 hover:shadow-lg bg-green-400"
           >
             Start Your Own Family Chat

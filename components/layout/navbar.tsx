@@ -2,8 +2,9 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { Menu, X } from "lucide-react";
+import { Menu, X, LogOut } from "lucide-react";
 import { useState } from "react";
+import { useSession, signOut } from "next-auth/react";
 
 interface Props {
   className?: string;
@@ -11,6 +12,7 @@ interface Props {
 
 export default function Navbar({ className = "" }: Props) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { data: session, status } = useSession();
 
   const navLinks = [
     { href: "/", label: "Home" },
@@ -50,20 +52,46 @@ export default function Navbar({ className = "" }: Props) {
             ))}
           </div>
 
-          {/* Desktop Auth Buttons */}
-          <div className="hidden md:flex items-center space-x-3">
-            <Link
-              href="/signin"
-              className="px-4 py-2 text-sm font-medium text-white rounded-lg transition-colors duration-200 bg-green-400"
-            >
-              Sign In
-            </Link>
-            <Link
-              href="/signup"
-              className="px-4 py-2 text-sm font-medium text-white rounded-lg transition-colors duration-200 bg-green-400"
-            >
-              Sign Up
-            </Link>
+          {/* Desktop Auth Section */}
+          <div className="hidden md:flex items-center">
+            <div className="flex items-center justify-end w-[260px]">
+              {status === "loading" ? (
+                <div className="h-8 w-full invisible" />
+              ) : session ? (
+                <div className="flex items-center space-x-3 w-full">
+                  <div className="flex items-center space-x-2 min-w-0">
+                    {session.user?.image && (
+                      <Image
+                        src={session.user.image}
+                        alt="User Avatar"
+                        width={32}
+                        height={32}
+                        className="rounded-full flex-shrink-0"
+                      />
+                    )}
+                    <span className="text-sm font-medium text-gray-700 truncate max-w-[140px]">
+                      {session.user?.name || session.user?.email}
+                    </span>
+                  </div>
+                  <button
+                    onClick={() => signOut()}
+                    className="flex items-center space-x-1 px-3 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors duration-200 cursor-pointer flex-shrink-0"
+                  >
+                    <LogOut className="h-4 w-4" />
+                    <span>Log Out</span>
+                  </button>
+                </div>
+              ) : (
+                <div className="w-full flex justify-end">
+                  <Link
+                    href="/signin"
+                    className="w-[100px] text-center px-4 py-2 text-sm font-medium text-white rounded-lg transition-colors duration-200 bg-green-400"
+                  >
+                    Sign In
+                  </Link>
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Mobile Menu Button */}
@@ -95,20 +123,46 @@ export default function Navbar({ className = "" }: Props) {
                 </Link>
               ))}
               <div className="pt-4 space-y-2">
-                <Link
-                  href="/signin"
-                  className="block w-full px-4 py-2 text-sm font-medium text-white rounded-lg transition-colors duration-200 text-center bg-green-400"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  Sign In
-                </Link>
-                <Link
-                  href="/signup"
-                  className="block w-full px-4 py-2 text-sm font-medium text-white rounded-lg transition-colors duration-200 text-center bg-green-400"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  Sign Up
-                </Link>
+                {status === "loading" ? (
+                  <div className="w-full h-8 bg-gray-200 rounded animate-pulse"></div>
+                ) : session ? (
+                  <>
+                    <div className="flex items-center space-x-2 px-3 py-2">
+                      {session.user?.image && (
+                        <Image
+                          src={session.user.image}
+                          alt="User Avatar"
+                          width={24}
+                          height={24}
+                          className="rounded-full"
+                        />
+                      )}
+                      <span className="text-sm font-medium text-gray-700">
+                        {session.user?.name || session.user?.email}
+                      </span>
+                    </div>
+                    <button
+                      onClick={() => {
+                        signOut();
+                        setIsMobileMenuOpen(false);
+                      }}
+                      className="flex items-center justify-center space-x-1 w-full px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors duration-200 cursor-pointer"
+                    >
+                      <LogOut className="h-4 w-4" />
+                      <span>Log Out</span>
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <Link
+                      href="/signin"
+                      className="block w-full px-4 py-2 text-sm font-medium text-white rounded-lg transition-colors duration-200 text-center bg-green-400"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      Sign In
+                    </Link>
+                  </>
+                )}
               </div>
             </div>
           </div>

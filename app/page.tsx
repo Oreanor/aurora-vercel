@@ -8,7 +8,7 @@ import Footer from "@/components/layout/footer";
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50">
+    <div className="h-full bg-gradient-to-br from-blue-50 via-white to-green-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-16">
         <div className="text-center">
 
@@ -36,7 +36,7 @@ export default function Home() {
           {/* CTA Buttons */}
           <div className="mt-16 flex flex-col sm:flex-row gap-4 justify-center">
             <Link
-              href="/signup"
+              href="/signin"
               className="px-8 py-4 text-lg font-semibold text-white rounded-xl transition-all duration-300 hover:scale-105 hover:shadow-lg inline-block text-center bg-green-400"
             >
               Start Your Journey
