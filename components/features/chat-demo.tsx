@@ -1,12 +1,15 @@
 "use client";
 
 import Link from "next/link";
+import { useSession } from "next-auth/react";
 
 interface Props {
   className?: string;
 }
 
 export default function ChatDemo({ className = "" }: Props) {
+  const { data: session } = useSession();
+  
   return (
       <>
         {/* Chat Window */}
@@ -98,7 +101,7 @@ export default function ChatDemo({ className = "" }: Props) {
         {/* CTA Below Chat */}
         <div className="text-center mt-8">
           <Link
-            href="/signin"
+            href={session ? "/chatroom" : "/signin"}
             className="inline-block px-8 py-3 text-lg font-semibold text-white rounded-xl transition-all duration-300 hover:scale-105 hover:shadow-lg bg-green-400"
           >
             Start Your Own Family Chat

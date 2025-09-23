@@ -8,8 +8,13 @@ const handler = NextAuth({
   adapter: PrismaAdapter(prisma),
   providers: [
     GoogleProvider({
-      clientId: process.env.GOOGLE_CLIENT_ID as string,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
+      clientId: process.env.GOOGLE_CLIENT_ID!,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+      authorization: {
+        params: {
+          prompt: "select_account"
+        }
+      }
     }),
     EmailProvider({
       server: {
@@ -25,6 +30,60 @@ const handler = NextAuth({
   ],
   session: { strategy: "jwt" },
   secret: process.env.AUTH_SECRET,
+  callbacks: {
+    // Этот колбэк срабатывает при логине
+    async signIn({ user, account, profile }) {
+      if (account?.provider === "google" && user.email) {
+        // Проверяем, есть ли уже юзер с таким email (от любого провайдера)
+        const existingUser = await prisma.user.findUnique({
+          where: { email: user.email },
+        });
+
+        if (existingUser) {
+          // Если есть, обновляем аккаунт для Google провайдера
+          await prisma.account.upsert({
+            where: {
+              provider_providerAccountId: {
+                provider: "google",
+                providerAccountId: account.providerAccountId,
+              },
+            },
+            update: {
+              userId: existingUser.id,
+            },
+            create: {
+              userId: existingUser.id,
+              type: account.type,
+              provider: account.provider,
+              providerAccountId: account.providerAccountId,
+              refresh_token: account.refresh_token,
+              access_token: account.access_token,
+              expires_at: account.expires_at,
+              token_type: account.token_type,
+              scope: account.scope,
+              id_token: account.id_token,
+              session_state: account.session_state,
+            },
+          });
+          
+          // Подменяем id текущего юзера
+          user.id = existingUser.id;
+        }
+      }
+      return true;
+    },
+
+    // В JWT храним единый id для Email и Google
+    async jwt({ token, user }) {
+      if (user) token.id = user.id;
+      return token;
+    },
+
+    async session({ session, token }) {
+      if (token.id && session.user) session.user.id = token.id as string;
+      return session;
+    },
+  },
 });
 
 export { handler as GET, handler as POST };

@@ -1,5 +1,8 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
+import { useSession } from "next-auth/react";
 import ChatDemo from "@/components/features/chat-demo";
 import FeaturesPreview from "@/components/features/features-preview";
 import HowToSteps from "@/components/features/how-to-steps";
@@ -7,6 +10,7 @@ import FutureFeatures from "@/components/features/future-features";
 import Footer from "@/components/layout/footer";
 
 export default function Home() {
+  const { data: session } = useSession();
   return (
     <div className="h-full bg-gradient-to-br from-blue-50 via-white to-green-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-16">
@@ -34,14 +38,16 @@ export default function Home() {
           </div>
 
           {/* CTA Buttons */}
-          <div className="mt-16 flex flex-col sm:flex-row gap-4 justify-center">
-            <Link
-              href="/signin"
-              className="px-8 py-4 text-lg font-semibold text-white rounded-xl transition-all duration-300 hover:scale-105 hover:shadow-lg inline-block text-center bg-green-400"
-            >
-              Start Your Journey
-            </Link>
-          </div>
+          {!session && (
+            <div className="mt-16 flex flex-col sm:flex-row gap-4 justify-center">
+              <Link
+                href="/signin"
+                className="px-8 py-4 text-lg font-semibold text-white rounded-xl transition-all duration-300 hover:scale-105 hover:shadow-lg inline-block text-center bg-green-400"
+              >
+                Start Your Journey
+              </Link>
+            </div>
+          )}
         </div>
       </div>
       <div className="bg-white/50 backdrop-blur-sm border-t border-gray-200">
@@ -56,6 +62,7 @@ export default function Home() {
             </div>
 
           <ChatDemo />
+          
         </div>
       </div>
 
