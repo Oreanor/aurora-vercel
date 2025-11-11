@@ -70,7 +70,7 @@ export default function FamilyNode({ data, isConnectable = false }: FamilyNodePr
     : null;
 
   return (
-    <div className={`relative flex flex-col items-center w-[200px] ${isMainPerson ? 'h-[450px]' : 'h-[180px]'}`}>
+    <div className={`relative flex flex-col items-center w-[200px] ${isMainPerson ? 'h-[420px]' : 'h-[150px]'}`}>
       {/* Handle сверху (для входящих связей) - в верхней части куста */}
       <Handle
         type="target"
@@ -80,15 +80,21 @@ export default function FamilyNode({ data, isConnectable = false }: FamilyNodePr
       />
 
       {/* Кусты (фон и передний план) */}
-      <img
+      <Image
         src="/tree/bush_bg.svg"
         alt=""
+        width={190}
+        height={190}
         className={`absolute top-0 left-1/2 -translate-x-1/2 origin-center w-[190px] h-auto ${bushClasses}`}
+        unoptimized
       />
-      <img
+      <Image
         src="/tree/bush.svg"
         alt=""
+        width={180}
+        height={180}
         className="absolute top-0 left-1/2 -translate-x-1/2 scale-[1.32] w-[180px] h-auto"
+        unoptimized
       />
 
       {/* Аватар */}
@@ -134,11 +140,14 @@ export default function FamilyNode({ data, isConnectable = false }: FamilyNodePr
 
       {/* Ствол дерева для главного человека - сразу под текстовым блоком */}
       {isMainPerson && (
-        <div className="absolute top-[60px] left-1/2 -translate-x-1/2 z-[1]">
-          <img
+        <div className="absolute top-[40px] left-1/2 -translate-x-1/2 z-[1]">
+          <Image
             src="/tree/trunk.svg"
             alt="Tree trunk"
+            width={256}
+            height={320}
             className="w-64 h-80 object-contain"
+            unoptimized
           />
         </div>
       )}

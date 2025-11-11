@@ -26,7 +26,7 @@ export default function Home() {
 
           <div className="mt-8 max-w-3xl mx-auto">
             <blockquote className="text-xl md:text-2xl font-medium text-gray-800 italic">
-              "What if you could keep your family close, always?"
+            &quot;What if you could keep your family close, always?&quot;
             </blockquote>
           </div>
 
@@ -88,7 +88,7 @@ export default function Home() {
               How to Create Warm Family Connections
             </h2>
             <p className="text-base md:text-lg text-gray-700 leading-relaxed max-w-3xl mx-auto">
-              Creating heartwarming conversations with your cherished family members is easier than you think. Here's the simple 3-step process that transforms precious memories into cozy digital experiences.
+              Creating heartwarming conversations with your cherished family members is easier than you think. Here&apos;s the simple 3-step process that transforms precious memories into cozy digital experiences.
             </p>
           </div>
         </div>
@@ -104,7 +104,7 @@ export default function Home() {
               The Future of Family History
             </h2>
             <p className="text-base md:text-lg text-gray-700 leading-relaxed max-w-3xl mx-auto">
-              We're constantly innovating to bring you even more immersive ways to connect with your ancestors. Here's what's coming next in Aurora:
+              We&apos;re constantly innovating to bring you even more immersive ways to connect with your ancestors. Here&apos;s what&apos;s coming next in Aurora:
             </p>
           </div>
         </div>

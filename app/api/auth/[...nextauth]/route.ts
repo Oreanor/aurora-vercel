@@ -32,7 +32,7 @@ const handler = NextAuth({
   secret: process.env.AUTH_SECRET,
   callbacks: {
     // Этот колбэк срабатывает при логине
-    async signIn({ user, account, profile }) {
+    async signIn({ user, account }) {
       if (account?.provider === "google" && user.email) {
         // Проверяем, есть ли уже юзер с таким email (от любого провайдера)
         const existingUser = await prisma.user.findUnique({

@@ -3,11 +3,7 @@
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 
-interface Props {
-  className?: string;
-}
-
-export default function ChatDemo({ className = "" }: Props) {
+export default function ChatDemo() {
   const { data: session } = useSession();
   
   return (
@@ -37,7 +33,7 @@ export default function ChatDemo({ className = "" }: Props) {
               <div className="flex-1">
                 <div className="bg-gray-100 rounded-xl rounded-tl-sm px-3 py-2 max-w-sm">
                   <p className="text-gray-800 text-sm">
-                    Hello sweetheart! I've been waiting so long to meet you. Your mother told me so much about you in her letters. I wish I could have held you when you were little.
+                    Hello sweetheart! I&apos;ve been waiting so long to meet you. Your mother told me so much about you in her letters. I wish I could have held you when you were little.
                   </p>
                 </div>
                 <p className="text-xs text-gray-500 mt-1 ml-3">2:34 PM</p>

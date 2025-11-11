@@ -7,7 +7,7 @@ import { useRouter } from 'next/navigation';
 export default function SignInPage() {
   const [email, setEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const { data: session, status } = useSession();
+  const { data: session } = useSession();
   const router = useRouter();
 
   // Редирект если пользователь уже авторизован
@@ -118,7 +118,7 @@ export default function SignInPage() {
           {/* Sign Up Link */}
           <div className="mt-6 text-center">
             <p className="text-sm text-gray-600">
-              Don't have an account?{' '}
+              Don&apos;t have an account?{' '}
               <a href="/signup" className="font-medium text-blue-600 hover:text-blue-500">
                 Sign up
               </a>

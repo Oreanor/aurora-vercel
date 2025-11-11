@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { Person } from "@/types/family";
 import { mockFamilyData } from "@/lib/mock-family-data";
 import { getPersonRole } from "@/lib/utils";
 import ChatWindow from "@/components/features/chat-window";
