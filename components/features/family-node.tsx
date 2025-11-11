@@ -3,11 +3,15 @@
 import { useMemo } from 'react';
 import { Handle, Position } from '@xyflow/react';
 import Image from 'next/image';
-import { Person } from '@/types/family';
+import { Person, Relationship } from '@/types/family';
+import { getPersonRole } from '@/lib/utils';
 
 interface FamilyNodeData {
   person: Person;
   isMainPerson?: boolean; // Главный человек (внизу дерева)
+  relationships?: Relationship[];
+  mainPersonId?: string;
+  persons?: Person[];
 }
 
 interface FamilyNodeProps {
@@ -16,13 +20,21 @@ interface FamilyNodeProps {
 }
 
 export default function FamilyNode({ data, isConnectable = false }: FamilyNodeProps) {
-  const { person, isMainPerson = false } = data;
+  const { person, isMainPerson = false, relationships = [], mainPersonId = '', persons = [] } = data;
 
   const fullName = [person.firstName, person.middleName, person.lastName]
     .filter(Boolean)
     .join(' ');
 
   const initial = person.firstName ? person.firstName.charAt(0).toUpperCase() : '?';
+
+  // Вычисляем роль персоны
+  const role = useMemo(() => {
+    if (!mainPersonId || relationships.length === 0 || persons.length === 0) {
+      return '';
+    }
+    return getPersonRole(person.id, mainPersonId, relationships, persons);
+  }, [person.id, mainPersonId, relationships, persons]);
 
   // Детерминированные трансформации для кустов на основе ID персоны
   // Это гарантирует одинаковые значения на сервере и клиенте
@@ -101,6 +113,9 @@ export default function FamilyNode({ data, isConnectable = false }: FamilyNodePr
       {/* Текстовая информация */}
       <div className="text-center absolute z-10 bg-white border-[#E1CD34] border-2 rounded-lg p-2 min-w-[120px] left-1/2 -translate-x-1/2 top-[90px]">
         <div className="font-bold text-sm text-gray-900">{fullName}</div>
+        {role && (
+          <div className="text-xs text-gray-600 mt-0.5 font-normal">{role}</div>
+        )}
         {(birthYear || deathYear) && (
           <div className="text-xs text-gray-500 mt-1">
             {birthYear}

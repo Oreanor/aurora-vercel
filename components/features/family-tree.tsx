@@ -75,6 +75,10 @@ function transformToFlowData(data: FamilyTreeData) {
   // Находим максимальную глубину (главный человек)
   const maxDepth = Math.max(...Array.from(depthsFromRoot.values()), 0);
 
+  // Находим ID главного человека (с максимальной глубиной)
+  const mainPersonId = Array.from(depthsFromRoot.entries())
+    .find(([_, depth]) => depth === maxDepth)?.[0] || '';
+
   // Инвертируем: главный человек (maxDepth) -> уровень 0 (внизу), бабушки/дедушки (0) -> уровень maxDepth (вверху)
   const levels = new Map<string, number>();
   depthsFromRoot.forEach((depth, personId) => {
@@ -120,6 +124,9 @@ function transformToFlowData(data: FamilyTreeData) {
         data: {
           person,
           isMainPerson,
+          relationships: data.relationships,
+          mainPersonId,
+          persons: data.persons,
         },
         width: 200,
         height: isMainPerson ? 450 : 180, // Больше для главного человека из-за trunk
