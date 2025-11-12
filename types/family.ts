@@ -20,6 +20,7 @@ export interface Person {
   gender?: Gender; // пол
   photo?: string; // URL фотографии
   qualities?: IQualities; // качества
+  email?: string; // email пользователя для идентификации и приглашений
 }
 
 export interface IQualities {

@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { useSession } from "next-auth/react";
+import Button from "@/components/ui/button";
+import Input from "@/components/ui/input";
 
 export default function ChatDemo() {
   const { data: session } = useSession();
@@ -77,30 +79,34 @@ export default function ChatDemo() {
           <div className="border-t border-gray-200 p-4">
             <div className="flex items-center space-x-3">
               <div className="flex-1 bg-gray-100 rounded-full px-4 py-2">
-                <input
+                <Input
                   type="text"
                   placeholder="Type your message..."
-                  className="w-full bg-transparent text-gray-700 placeholder-gray-500 focus:outline-none"
+                  className="bg-transparent border-0 rounded-full placeholder-gray-500 focus:ring-0 shadow-none"
                   disabled
                 />
               </div>
-              <button
-                className="px-6 py-2 text-white rounded-full cursor-not-allowed bg-green-400"
+              <Button
+                variant="primary"
+                className="rounded-full"
                 disabled
               >
                 Send
-              </button>
+              </Button>
             </div>
           </div>
         </div>
 
         {/* CTA Below Chat */}
         <div className="text-center mt-8">
-          <Link
-            href={session ? "/chatroom" : "/signin"}
-            className="inline-block px-8 py-3 text-lg font-semibold text-white rounded-xl transition-all duration-300 hover:scale-105 hover:shadow-lg bg-green-400"
-          >
-            Start Your Own Family Chat
+          <Link href={session ? "/chatroom" : "/signin"} className="inline-block">
+            <Button
+              variant="primary"
+              size="lg"
+              className="rounded-xl hover:scale-105 hover:shadow-lg transition-all duration-300"
+            >
+              Start Your Own Family Chat
+            </Button>
           </Link>
         </div>
       </>

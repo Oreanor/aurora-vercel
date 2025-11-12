@@ -1,6 +1,11 @@
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
-import { Person, Relationship, Gender } from "@/types/family"
+import { Person, Relationship } from "@/types/family"
+
+export interface FamilyMemberWithRole {
+  person: Person;
+  role: string;
+}
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -92,9 +97,7 @@ export function getPersonRole(
  * @returns system prompt для модели
  */
 export function generateSystemPrompt(person: Person, role: string): string {
-  const fullName = [person.firstName, person.middleName, person.lastName]
-    .filter(Boolean)
-    .join(" ");
+  const fullName = getPersonFullName(person);
 
   const birthYear = person.birthDate
     ? new Date(person.birthDate).getFullYear()
@@ -142,4 +145,151 @@ export function generateSystemPrompt(person: Person, role: string): string {
   prompt += `Respond naturally and warmly as ${role.toLowerCase()} would, sharing memories, wisdom, and family stories. Be authentic to the time period you lived in and maintain the loving, familial relationship with the person you're chatting with.`;
 
   return prompt;
+}
+
+/**
+ * Сортирует членов семьи по роли и имени
+ * @param familyMembers - массив членов семьи с их ролями
+ * @returns отсортированный массив
+ */
+export function sortFamilyMembersByRole(
+  familyMembers: FamilyMemberWithRole[]
+): FamilyMemberWithRole[] {
+  return [...familyMembers].sort((a, b) => {
+    // Сортируем по роли (родители первыми, потом бабушки/дедушки и т.д.)
+    const roleOrder: { [key: string]: number } = {
+      Father: 1,
+      Mother: 2,
+      Grandfather: 3,
+      Grandmother: 4,
+      "Great-grandfather": 5,
+      "Great-grandmother": 6,
+    };
+    const orderA = roleOrder[a.role] || 99;
+    const orderB = roleOrder[b.role] || 99;
+    if (orderA !== orderB) return orderA - orderB;
+    // Если порядок одинаковый, сортируем по имени
+    const nameA = [a.person.firstName, a.person.lastName].filter(Boolean).join(" ");
+    const nameB = [b.person.firstName, b.person.lastName].filter(Boolean).join(" ");
+    return nameA.localeCompare(nameB);
+  });
+}
+
+/**
+ * Формирует полное имя персоны из firstName, middleName и lastName
+ * @param person - объект персоны
+ * @returns полное имя
+ */
+export function getPersonFullName(person: Person): string {
+  return [person.firstName, person.middleName, person.lastName]
+    .filter(Boolean)
+    .join(" ");
+}
+
+/**
+ * Получает инициал персоны (первая буква имени)
+ * @param person - объект персоны
+ * @returns инициал в верхнем регистре или "?"
+ */
+export function getPersonInitial(person: Person): string {
+  return person.firstName ? person.firstName.charAt(0).toUpperCase() : "?";
+}
+
+/**
+ * Форматирует годы жизни персоны в строку вида "1923-1998" или "1923"
+ * @param person - объект персоны
+ * @returns отформатированная строка с годами или пустая строка
+ */
+export function formatPersonYears(person: Person): string {
+  const birthYear = person.birthDate
+    ? new Date(person.birthDate).getFullYear()
+    : null;
+  const deathYear = person.deathDate
+    ? new Date(person.deathDate).getFullYear()
+    : null;
+
+  if (!birthYear) return "";
+  return deathYear ? `${birthYear}-${deathYear}` : `${birthYear}`;
+}
+
+/**
+ * Находит главного человека в семейном дереве
+ * @param persons - массив всех персон
+ * @param relationships - массив связей родитель-ребенок
+ * @param currentUserEmail - email текущего пользователя (опционально)
+ * @returns ID главного человека или пустая строка
+ */
+export function findMainPersonId(
+  persons: Person[],
+  relationships: Relationship[],
+  currentUserEmail?: string
+): string {
+  // Если передан email, ищем персону с таким email
+  if (currentUserEmail) {
+    const currentUserPerson = persons.find((p) => p.email === currentUserEmail);
+    if (currentUserPerson) {
+      return currentUserPerson.id;
+    }
+  }
+
+  // Иначе находим человека с максимальной глубиной от корня
+  const getDepthFromRoot = (personId: string, visited = new Set<string>()): number => {
+    if (visited.has(personId)) return -1;
+    visited.add(personId);
+
+    const parents = relationships
+      .filter((rel) => rel.childId === personId)
+      .map((rel) => rel.parentId);
+
+    if (parents.length === 0) {
+      return 0;
+    }
+
+    const parentDepths = parents
+      .map((parentId) => getDepthFromRoot(parentId, new Set(visited)))
+      .filter((depth) => depth >= 0);
+
+    if (parentDepths.length === 0) return 0;
+
+    return Math.max(...parentDepths) + 1;
+  };
+
+  const depthsFromRoot = new Map<string, number>();
+  persons.forEach((person) => {
+    const depth = getDepthFromRoot(person.id);
+    depthsFromRoot.set(person.id, depth);
+  });
+
+  const maxDepth = Math.max(...Array.from(depthsFromRoot.values()), 0);
+  return (
+    Array.from(depthsFromRoot.entries()).find(([_, depth]) => depth === maxDepth)?.[0] || ""
+  );
+}
+
+/**
+ * Проверяет, можно ли добавить родителя для указанного ребенка
+ * @param childId - ID ребенка
+ * @param relationships - массив существующих связей
+ * @returns true если можно добавить (меньше 2 родителей), false иначе
+ */
+export function canAddParent(childId: string, relationships: Relationship[]): boolean {
+  const existingParents = relationships.filter((rel) => rel.childId === childId);
+  return existingParents.length < 2;
+}
+
+/**
+ * Проверяет, существует ли уже связь между двумя персонами
+ * @param parentId - ID родителя
+ * @param childId - ID ребенка
+ * @param relationships - массив существующих связей
+ * @returns true если связь уже существует
+ */
+export function relationshipExists(
+  parentId: string,
+  childId: string,
+  relationships: Relationship[]
+): boolean {
+  return relationships.some(
+    (rel) => rel.parentId === parentId && rel.childId === childId
+  );
 }

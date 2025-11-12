@@ -5,6 +5,8 @@ import Image from "next/image";
 import { Menu, X, LogOut } from "lucide-react";
 import { useState } from "react";
 import { useSession, signOut } from "next-auth/react";
+import { usePathname } from "next/navigation";
+import Button from "@/components/ui/button";
 
 interface Props {
   className?: string;
@@ -13,6 +15,7 @@ interface Props {
 export default function Navbar({ className = "" }: Props) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { data: session, status } = useSession();
+  const pathname = usePathname();
 
   const navLinks = [
     { href: "/", label: "Home" },
@@ -41,15 +44,22 @@ export default function Navbar({ className = "" }: Props) {
 
           {/* Desktop Navigation Links */}
           <div className="hidden md:flex items-center space-x-8">
-            {navLinks.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                className="text-gray-700 hover:text-gray-900 font-medium transition-colors duration-200"
-              >
-                {link.label}
-              </Link>
-            ))}
+            {navLinks.map((link) => {
+              const isActive = pathname === link.href;
+              return (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className={`font-medium transition-colors duration-200 ${
+                    isActive
+                      ? 'text-green-400'
+                      : 'text-gray-700 hover:text-gray-900'
+                  }`}
+                >
+                  {link.label}
+                </Link>
+              );
+            })}
           </div>
 
           {/* Desktop Auth Section */}
@@ -73,21 +83,22 @@ export default function Navbar({ className = "" }: Props) {
                       {session.user?.name || session.user?.email}
                     </span>
                   </div>
-                  <button
+                  <Button
                     onClick={() => signOut()}
-                    className="flex items-center space-x-1 px-3 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors duration-200 cursor-pointer flex-shrink-0"
+                    variant="ghost"
+                    size="sm"
+                    className="flex items-center space-x-1 flex-shrink-0"
                   >
                     <LogOut className="h-4 w-4" />
                     <span>Log Out</span>
-                  </button>
+                  </Button>
                 </div>
               ) : (
                 <div className="w-full flex justify-end">
-                  <Link
-                    href="/signin"
-                    className="w-[100px] text-center px-4 py-2 text-sm font-medium text-white rounded-lg transition-colors duration-200 bg-green-400"
-                  >
-                    Sign In
+                  <Link href="/signin" className="w-[100px]">
+                    <Button variant="primary" size="sm" className="w-full">
+                      Sign In
+                    </Button>
                   </Link>
                 </div>
               )}
@@ -112,16 +123,23 @@ export default function Navbar({ className = "" }: Props) {
         {isMobileMenuOpen && (
           <div className="md:hidden bg-white border-t border-gray-200">
             <div className="px-2 pt-2 pb-3 space-y-1">
-              {navLinks.map((link) => (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  className="block px-3 py-2 text-gray-700 hover:text-gray-900 font-medium transition-colors duration-200"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  {link.label}
-                </Link>
-              ))}
+              {navLinks.map((link) => {
+                const isActive = pathname === link.href;
+                return (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    className={`block px-3 py-2 font-medium transition-colors duration-200 ${
+                      isActive
+                        ? 'text-green-400'
+                        : 'text-gray-700 hover:text-gray-900'
+                    }`}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    {link.label}
+                  </Link>
+                );
+              })}
               <div className="pt-4 space-y-2">
                 {status === "loading" ? (
                   <div className="w-full h-8 bg-gray-200 rounded animate-pulse"></div>
@@ -141,25 +159,29 @@ export default function Navbar({ className = "" }: Props) {
                         {session.user?.name || session.user?.email}
                       </span>
                     </div>
-                    <button
+                    <Button
                       onClick={() => {
                         signOut();
                         setIsMobileMenuOpen(false);
                       }}
-                      className="flex items-center justify-center space-x-1 w-full px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors duration-200 cursor-pointer"
+                      variant="ghost"
+                      size="sm"
+                      className="flex items-center justify-center space-x-1 w-full"
                     >
                       <LogOut className="h-4 w-4" />
                       <span>Log Out</span>
-                    </button>
+                    </Button>
                   </>
                 ) : (
                   <>
                     <Link
                       href="/signin"
-                      className="block w-full px-4 py-2 text-sm font-medium text-white rounded-lg transition-colors duration-200 text-center bg-green-400"
+                      className="block w-full"
                       onClick={() => setIsMobileMenuOpen(false)}
                     >
-                      Sign In
+                      <Button variant="primary" size="sm" className="w-full">
+                        Sign In
+                      </Button>
                     </Link>
                   </>
                 )}

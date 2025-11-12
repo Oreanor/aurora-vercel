@@ -2,6 +2,9 @@
 
 import { useState, useRef, useEffect } from "react";
 import { Person } from "@/types/family";
+import { getPersonFullName, getPersonInitial, formatPersonYears } from "@/lib/utils";
+import Button from "@/components/ui/button";
+import Input from "@/components/ui/input";
 
 interface Message {
   id: string;
@@ -106,22 +109,9 @@ export default function ChatWindow({ selectedPerson, role = "", className = "" }
     );
   }
 
-  const fullName = [selectedPerson.firstName, selectedPerson.middleName, selectedPerson.lastName]
-    .filter(Boolean)
-    .join(" ");
-
-  const initial = selectedPerson.firstName ? selectedPerson.firstName.charAt(0).toUpperCase() : "?";
-
-  const birthYear = selectedPerson.birthDate
-    ? new Date(selectedPerson.birthDate).getFullYear()
-    : null;
-  const deathYear = selectedPerson.deathDate
-    ? new Date(selectedPerson.deathDate).getFullYear()
-    : null;
-
-  const yearsDisplay = birthYear
-    ? `${birthYear}${deathYear ? `-${deathYear}` : ""}`
-    : "";
+  const fullName = getPersonFullName(selectedPerson);
+  const initial = getPersonInitial(selectedPerson);
+  const yearsDisplay = formatPersonYears(selectedPerson);
 
   // Цвет для аватара
   const getAvatarGradient = () => {
@@ -227,23 +217,24 @@ export default function ChatWindow({ selectedPerson, role = "", className = "" }
       <div className="border-t border-gray-200 p-4">
         <div className="flex items-center space-x-3">
           <div className="flex-1 bg-gray-100 rounded-full px-4 py-2">
-            <input
+            <Input
               type="text"
               placeholder="Type your message..."
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
               onKeyPress={handleKeyPress}
               disabled={isLoading}
-              className="w-full bg-transparent text-gray-700 placeholder-gray-500 focus:outline-none disabled:opacity-50"
+              className="bg-transparent border-0 rounded-full placeholder-gray-500 focus:ring-0 shadow-none"
             />
           </div>
-          <button
+          <Button
             onClick={handleSend}
             disabled={!inputValue.trim() || isLoading}
-            className="px-6 py-2 text-white rounded-full bg-green-500 hover:bg-green-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            variant="primary"
+            className="rounded-full"
           >
             Send
-          </button>
+          </Button>
         </div>
       </div>
     </div>

@@ -14,6 +14,7 @@ export const mockFamilyData: FamilyTreeData = {
       middleName: '',
       birthDate: '1990-05-15',
       gender: 'male',
+      email: 'oreanor@gmail.com', // Email пользователя для идентификации
     },
     // Родители
     {
@@ -23,6 +24,7 @@ export const mockFamilyData: FamilyTreeData = {
       middleName: '',
       birthDate: '1965-03-20',
       gender: 'male',
+      email: 'alex.smith@example.com', // Пример: email для другого пользователя
     },
     {
       id: 'person-3',
@@ -55,7 +57,7 @@ export const mockFamilyData: FamilyTreeData = {
       id: 'person-6',
       firstName: 'Sergey',
       lastName: 'Petrov',
-      middleName: '',
+      middleName: 'Petrovich',
       birthDate: '1938-11-30',
       deathDate: '2008-03-18',
       gender: 'male',
@@ -63,9 +65,49 @@ export const mockFamilyData: FamilyTreeData = {
     {
       id: 'person-7',
       firstName: 'Elena',
+      middleName: 'Ivanovna',
       lastName: 'Petrov',
-      middleName: '',
       birthDate: '1945-04-12',
+      gender: 'female',
+    },
+    // Прадедушка по отцу (отец Peter)
+    {
+      id: 'person-8',
+      firstName: 'William',
+      lastName: 'Smith',
+      middleName: '',
+      birthDate: '1915-05-20',
+      deathDate: '1985-09-10',
+      gender: 'male',
+    },
+    // Прабабушка по отцу (мать Anna)
+    {
+      id: 'person-9',
+      firstName: 'Margaret',
+      lastName: 'Smith',
+      middleName: '',
+      birthDate: '1918-09-14',
+      deathDate: '1992-07-22',
+      gender: 'female',
+    },
+    // Прадедушка по матери (отец Sergey)
+    {
+      id: 'person-10',
+      firstName: 'Ivan',
+      lastName: 'Petrov',
+      middleName: 'Vasilievich',
+      birthDate: '1910-12-05',
+      deathDate: '1980-04-30',
+      gender: 'male',
+    },
+    // Прабабушка по матери (мать Elena)
+    {
+      id: 'person-11',
+      firstName: 'Sofia',
+      lastName: 'Ivanova',
+      middleName: 'Nikolaevna',
+      birthDate: '1912-03-18',
+      deathDate: '1995-11-08',
       gender: 'female',
     },
   ],
@@ -105,6 +147,30 @@ export const mockFamilyData: FamilyTreeData = {
       id: 'rel-6',
       parentId: 'person-7',
       childId: 'person-3',
+    },
+    // Peter - son of William
+    {
+      id: 'rel-7',
+      parentId: 'person-8',
+      childId: 'person-4',
+    },
+    // Anna - daughter of Margaret
+    {
+      id: 'rel-8',
+      parentId: 'person-9',
+      childId: 'person-5',
+    },
+    // Sergey - son of Ivan
+    {
+      id: 'rel-9',
+      parentId: 'person-10',
+      childId: 'person-6',
+    },
+    // Elena - daughter of Sofia
+    {
+      id: 'rel-10',
+      parentId: 'person-11',
+      childId: 'person-7',
     },
   ],
 };

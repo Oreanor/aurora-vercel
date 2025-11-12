@@ -4,7 +4,7 @@ import { useMemo } from 'react';
 import { Handle, Position } from '@xyflow/react';
 import Image from 'next/image';
 import { Person, Relationship } from '@/types/family';
-import { getPersonRole } from '@/lib/utils';
+import { getPersonRole, getPersonFullName } from '@/lib/utils';
 
 interface FamilyNodeData {
   person: Person;
@@ -12,6 +12,7 @@ interface FamilyNodeData {
   relationships?: Relationship[];
   mainPersonId?: string;
   persons?: Person[];
+  isSelected?: boolean; // Выбран ли узел
 }
 
 interface FamilyNodeProps {
@@ -20,13 +21,14 @@ interface FamilyNodeProps {
 }
 
 export default function FamilyNode({ data, isConnectable = false }: FamilyNodeProps) {
-  const { person, isMainPerson = false, relationships = [], mainPersonId = '', persons = [] } = data;
+  const { person, isMainPerson = false, relationships = [], mainPersonId = '', persons = [], isSelected = false } = data;
 
-  const fullName = [person.firstName, person.middleName, person.lastName]
-    .filter(Boolean)
-    .join(' ');
+  const fullName = getPersonFullName(person);
 
-  const initial = person.firstName ? person.firstName.charAt(0).toUpperCase() : '?';
+  const initial = person.firstName ? person.firstName.charAt(0).toUpperCase() : '';
+  const last = person.lastName ? person.lastName.charAt(0).toUpperCase() : '';
+  const initials = `${initial}${last}`;
+
 
   // Вычисляем роль персоны
   const role = useMemo(() => {
@@ -70,7 +72,7 @@ export default function FamilyNode({ data, isConnectable = false }: FamilyNodePr
     : null;
 
   return (
-    <div className={`relative flex flex-col items-center w-[200px] ${isMainPerson ? 'h-[420px]' : 'h-[150px]'}`}>
+    <div className={`relative flex flex-col items-center w-[200px] h-[100px]`}>
       {/* Handle сверху (для входящих связей) - в верхней части куста */}
       <Handle
         type="target"
@@ -98,26 +100,26 @@ export default function FamilyNode({ data, isConnectable = false }: FamilyNodePr
       />
 
       {/* Аватар */}
-      <div className="avatar-container w-24 h-32 overflow-hidden rounded-[50%/50%] border-4 border-[#E1CD34] absolute z-10 left-1/2 -translate-x-1/2 -top-[30px]">
+      <div className={`avatar-container w-32 h-32 overflow-hidden rounded-[50%/50%] border-[#E1CD34] absolute z-10 left-1/2 -translate-x-1/2 -top-[30px] ${isSelected ? 'border-10' : 'border-4'}`}>
         {person.photo ? (
           <Image
             src={person.photo}
             alt={fullName}
-            width={64}
+            width={80}
             height={80}
             className="object-cover w-full h-full"
           />
         ) : (
           <div
-            className={`w-full h-full ${getAvatarColor()} flex items-center justify-center text-lg font-semibold text-white`}
+            className={`w-full h-full ${getAvatarColor()} flex items-center justify-center text-4xl font-semibold text-white`}
           >
-            {initial}
+            {initials}
           </div>
         )}
       </div>
 
       {/* Текстовая информация */}
-      <div className="text-center absolute z-10 bg-white border-[#E1CD34] border-2 rounded-lg p-2 min-w-[120px] left-1/2 -translate-x-1/2 top-[90px]">
+      <div className={`text-center absolute z-10 bg-white rounded-lg p-2 min-w-[120px] left-1/2 -translate-x-1/2 top-[90px] outline outline-[#E1CD34] ${isSelected ? 'outline-[8px]' : 'outline-[2px]'}`}>
         <div className="font-bold text-sm text-gray-900">{fullName}</div>
         {role && (
           <div className="text-xs text-gray-600 mt-0.5 font-normal">{role}</div>
