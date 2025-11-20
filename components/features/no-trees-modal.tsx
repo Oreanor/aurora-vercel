@@ -27,7 +27,7 @@ export default function NoTreesModal({ isOpen, onClose, onCreateTree }: NoTreesM
         </div>
         
         <p className="text-gray-700 mb-6">
-          You don't have any family trees yet. Let's create your first family tree!
+          You don&apos;t have any family trees yet. Let&apos;s create your first family tree!
         </p>
         
         <div className="flex gap-3">

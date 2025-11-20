@@ -97,7 +97,7 @@ export default function Navbar({ className = "" }: Props) {
             try {
               const fullTree = await getTreeById(tree.id);
               names[tree.id] = formatTreeNameShort(fullTree);
-            } catch (err) {
+            } catch (_err) {
               names[tree.id] = tree.name || tree.id;
             }
           })
@@ -124,7 +124,7 @@ export default function Navbar({ className = "" }: Props) {
     };
 
     loadTrees();
-  }, [session?.user?.email, status, searchParams]);
+  }, [session?.user?.email, status, searchParams, pathname, selectedTreeId, setSelectedTreeId]);
 
   // Обработчик изменения дерева
   const handleTreeChange = (treeId: string) => {

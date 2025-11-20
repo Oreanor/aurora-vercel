@@ -262,7 +262,7 @@ export function findMainPersonId(
 
   const maxDepth = Math.max(...Array.from(depthsFromRoot.values()), 0);
   return (
-    Array.from(depthsFromRoot.entries()).find(([_, depth]) => depth === maxDepth)?.[0] || ""
+    Array.from(depthsFromRoot.entries()).find(([, depth]) => depth === maxDepth)?.[0] || ""
   );
 }
 

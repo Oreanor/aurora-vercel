@@ -1,6 +1,5 @@
 'use client';
 
-import { Handle, Position } from '@xyflow/react';
 
 interface SpouseRingNodeProps {
   data: {

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { mockFamilyTrees } from '@/lib/mock-family-data';
-import { FamilyTree, FamilyTreeData } from '@/types/family';
+import { FamilyTree } from '@/types/family';
 
 // Временное хранилище для созданных деревьев (в реальности будет база данных)
 declare global {

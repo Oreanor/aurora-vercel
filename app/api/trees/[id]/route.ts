@@ -19,10 +19,11 @@ if (!global.userCreatedTrees) {
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const treeId = params.id;
+    const { id } = await params;
+    const treeId = id;
     
     // Ищем в мок-деревьях и созданных пользователем
     const allTrees = [...mockFamilyTrees, ...(global.userCreatedTrees || [])];
