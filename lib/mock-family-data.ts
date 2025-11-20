@@ -1,10 +1,10 @@
-import { FamilyTreeData } from '@/types/family';
+import { FamilyTreeData, FamilyTree } from '@/types/family';
 
 /**
- * Mock-данные для генеалогического дерева
+ * Mock-данные для первого генеалогического дерева
  * Человек с двумя родителями и бабушками-дедушками
  */
-export const mockFamilyData: FamilyTreeData = {
+const mockFamilyData1: FamilyTreeData = {
   persons: [
     // Главный человек
     {
@@ -174,4 +174,128 @@ export const mockFamilyData: FamilyTreeData = {
     },
   ],
 };
+
+/**
+ * Mock-данные для второго генеалогического дерева (упрощенное)
+ */
+const mockFamilyData2: FamilyTreeData = {
+  persons: [
+    {
+      id: 'person-2-1',
+      firstName: 'Alice',
+      lastName: 'Johnson',
+      middleName: '',
+      birthDate: '1985-07-20',
+      gender: 'female',
+      email: 'alice.johnson@example.com',
+    },
+    {
+      id: 'person-2-2',
+      firstName: 'Robert',
+      lastName: 'Johnson',
+      middleName: '',
+      birthDate: '1960-01-10',
+      gender: 'male',
+    },
+    {
+      id: 'person-2-3',
+      firstName: 'Linda',
+      lastName: 'Johnson',
+      middleName: '',
+      birthDate: '1962-03-15',
+      gender: 'female',
+    },
+  ],
+  relationships: [
+    {
+      id: 'rel-2-1',
+      parentId: 'person-2-2',
+      childId: 'person-2-1',
+    },
+    {
+      id: 'rel-2-2',
+      parentId: 'person-2-3',
+      childId: 'person-2-1',
+    },
+  ],
+};
+
+/**
+ * Mock-данные для третьего генеалогического дерева (упрощенное)
+ */
+const mockFamilyData3: FamilyTreeData = {
+  persons: [
+    {
+      id: 'person-3-1',
+      firstName: 'Michael',
+      lastName: 'Brown',
+      middleName: '',
+      birthDate: '1992-11-05',
+      gender: 'male',
+      email: 'michael.brown@example.com',
+    },
+    {
+      id: 'person-3-2',
+      firstName: 'David',
+      lastName: 'Brown',
+      middleName: '',
+      birthDate: '1970-09-12',
+      gender: 'male',
+    },
+  ],
+  relationships: [
+    {
+      id: 'rel-3-1',
+      parentId: 'person-3-2',
+      childId: 'person-3-1',
+    },
+  ],
+};
+
+/**
+ * Массив всех мок-деревьев с правами доступа
+ */
+export const mockFamilyTrees: FamilyTree[] = [
+  {
+    id: 'tree-1',
+    name: 'Smith Family Tree',
+    data: mockFamilyData1,
+    access: {
+      owner: ['oreanor@gmail.com'],
+      editor: ['alex.smith@example.com'],
+      viewer: ['viewer1@example.com', 'viewer2@example.com'],
+    },
+    createdAt: '2024-01-15T10:00:00Z',
+    updatedAt: '2024-01-20T15:30:00Z',
+  },
+  {
+    id: 'tree-2',
+    name: 'Johnson Family Tree',
+    data: mockFamilyData2,
+    access: {
+      owner: ['alice.johnson@example.com'],
+      editor: ['oreanor@gmail.com'],
+      viewer: [],
+    },
+    createdAt: '2024-02-01T09:00:00Z',
+    updatedAt: '2024-02-05T14:20:00Z',
+  },
+  {
+    id: 'tree-3',
+    name: 'Brown Family Tree',
+    data: mockFamilyData3,
+    access: {
+      owner: ['michael.brown@example.com'],
+      editor: ['oreanor@gmail.com', 'alex.smith@example.com'],
+      viewer: ['viewer1@example.com'],
+    },
+    createdAt: '2024-02-10T11:00:00Z',
+    updatedAt: '2024-02-12T16:45:00Z',
+  },
+];
+
+/**
+ * Обратная совместимость: экспорт первого дерева как mockFamilyData
+ */
+export const mockFamilyData: FamilyTreeData = mockFamilyData1;
 

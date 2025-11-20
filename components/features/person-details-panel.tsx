@@ -15,9 +15,6 @@ export default function PersonDetailsPanel({ person, fullName, onClose }: Person
       <div className="flex-shrink-0 p-6 border-b border-gray-200 flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold text-gray-900">{fullName}</h2>
-          {person.email && (
-            <p className="text-sm text-gray-500 mt-1">{person.email}</p>
-          )}
         </div>
         {onClose && (
           <button

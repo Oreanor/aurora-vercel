@@ -3,7 +3,9 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/layout/navbar";
 import AuthSessionProvider from "@/components/providers/session-provider";
+import { TreeProvider } from "@/contexts/tree-context";
 import ScrollToTop from "@/components/layout/scroll-to-top";
+import { Suspense } from "react";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -32,10 +34,14 @@ export default function RootLayout({
       >
         <ScrollToTop />
         <AuthSessionProvider>
-          <Navbar />
-          <main className="h-[calc(100vh-60px)] mt-15 overflow-y-auto">
-            {children}
-          </main>
+          <Suspense fallback={<div>Loading...</div>}>
+            <TreeProvider>
+              <Navbar />
+              <main className="h-[calc(100vh-60px)] mt-15 overflow-y-auto">
+                {children}
+              </main>
+            </TreeProvider>
+          </Suspense>
         </AuthSessionProvider>
       </body>
     </html>

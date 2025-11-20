@@ -54,3 +54,24 @@ export interface FamilyTreeData {
   relationships: Relationship[];
 }
 
+/**
+ * Права доступа к дереву
+ */
+export interface TreeAccess {
+  owner: string[];   // Массив email владельцев
+  editor: string[];  // Массив email редакторов
+  viewer: string[];  // Массив email просматривающих
+}
+
+/**
+ * Дерево с метаданными и правами доступа
+ */
+export interface FamilyTree {
+  id: string;                    // Уникальный ID дерева
+  name?: string;                 // Название дерева (опционально)
+  data: FamilyTreeData;          // Данные дерева
+  access: TreeAccess;            // Права доступа
+  createdAt?: string;            // Дата создания
+  updatedAt?: string;            // Дата обновления
+}
+

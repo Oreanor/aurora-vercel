@@ -145,9 +145,6 @@ export default function PersonAutocomplete({
                   } ${isSelected ? 'bg-green-50' : ''}`}
                 >
                   <div className="font-medium text-gray-900">{fullName}</div>
-                  {person.email && (
-                    <div className="text-xs text-gray-500">{person.email}</div>
-                  )}
                 </div>
               );
             })}

@@ -8,15 +8,12 @@ import FeaturesPreview from "@/components/features/features-preview";
 import HowToSteps from "@/components/features/how-to-steps";
 import FutureFeatures from "@/components/features/future-features";
 import Footer from "@/components/layout/footer";
-import AnchorNavigation from "@/components/layout/anchor-navigation";
 import SectionHeader from "@/components/layout/section-header";
 
 export default function Home() {
   const { data: session } = useSession();
   return (
     <div className="h-full bg-gradient-to-br from-blue-50 via-white to-green-50">
-      <AnchorNavigation />
-
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-16 pt-[110px]">
         <div className="text-center">
 
@@ -57,7 +54,7 @@ export default function Home() {
           )}
         </div>
       </div>
-      <div id="chat-demo" className="bg-white/50 backdrop-blur-sm border-t border-gray-200 scroll-mt-[120px]">
+      <div id="chat-demo" className="bg-white/50 backdrop-blur-sm border-t border-gray-200 scroll-mt-[60px]">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
           <div className="text-center mb-12">
               <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-6">
