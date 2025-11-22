@@ -1,10 +1,8 @@
-import NextAuth, { type NextAuthOptions } from "next-auth";
+import NextAuth from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
-import EmailProvider from "next-auth/providers/email";
-import { PrismaAdapter } from "@next-auth/prisma-adapter";
-import { prisma } from "@/lib/prisma";
 
-const providers: NextAuthOptions['providers'] = [
+const handler = NextAuth({
+  providers: [
   GoogleProvider({
     clientId: process.env.GOOGLE_CLIENT_ID!,
     clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
@@ -14,191 +12,19 @@ const providers: NextAuthOptions['providers'] = [
       }
     }
   }),
-];
-
-// Add EmailProvider only if email configuration is available
-// Check all required variables to avoid runtime errors
-const hasEmailConfig = 
-  process.env.EMAIL_SERVER_HOST &&
-  process.env.EMAIL_SERVER_PORT &&
-  process.env.EMAIL_FROM &&
-  process.env.EMAIL_SERVER_USER &&
-  process.env.EMAIL_SERVER_PASSWORD;
-
-if (hasEmailConfig) {
-  try {
-    const emailPort = Number(process.env.EMAIL_SERVER_PORT);
-    
-    // Validate port number
-    if (isNaN(emailPort) || emailPort <= 0 || emailPort > 65535) {
-      console.error(`Invalid EMAIL_SERVER_PORT: ${process.env.EMAIL_SERVER_PORT}`);
-    } else {
-      // Vercel has restrictions on SMTP ports - use standard ports
-      // Port 587 (TLS) or 465 (SSL) are recommended
-      if (emailPort !== 587 && emailPort !== 465 && emailPort !== 25) {
-        console.warn(`Warning: Non-standard SMTP port ${emailPort} may not work on Vercel. Use 587 (TLS) or 465 (SSL).`);
-      }
-      
-      providers.push(
-        EmailProvider({
-          server: {
-            host: process.env.EMAIL_SERVER_HOST,
-            port: emailPort,
-            // Use secure connection for port 465 (SSL), TLS for 587
-            secure: emailPort === 465,
-            auth: {
-              user: process.env.EMAIL_SERVER_USER,
-              pass: process.env.EMAIL_SERVER_PASSWORD,
-            },
-            // Add timeout settings for Vercel serverless functions (max 10s execution time limit)
-            connectionTimeout: 8000, // 8 seconds (leave buffer for Vercel's 10s limit)
-            greetingTimeout: 5000,
-            socketTimeout: 8000,
-            // Disable strict certificate validation (can cause issues on Vercel)
-            tls: {
-              rejectUnauthorized: false,
-            },
-          },
-          from: process.env.EMAIL_FROM,
-        })
-      );
-    }
-  } catch (error) {
-    console.error('Error configuring EmailProvider:', error);
-    // Don't add EmailProvider if configuration fails
-  }
-} else {
-  console.warn('EmailProvider not configured: Missing required environment variables');
-}
-
-// Ensure NEXTAUTH_URL is set for email magic links
-// NextAuth requires this to construct callback URLs
-if (!process.env.NEXTAUTH_URL && !process.env.AUTH_URL) {
-  // Try to set from VERCEL_URL (auto-set by Vercel)
-  if (process.env.VERCEL_URL) {
-    process.env.NEXTAUTH_URL = `https://${process.env.VERCEL_URL}`;
-  } else if (process.env.NODE_ENV === 'production') {
-    // Fallback for production
-    process.env.NEXTAUTH_URL = 'https://aurora-vercel-black.vercel.app';
-  } else {
-    // Local development
-    process.env.NEXTAUTH_URL = 'http://localhost:3000';
-  }
-}
-
-const authOptions: NextAuthOptions = {
-  adapter: PrismaAdapter(prisma),
-  providers,
-  session: { strategy: "jwt" },
-  secret: process.env.AUTH_SECRET,
-  // Ensure NEXTAUTH_URL is available for email magic links
-  ...(process.env.NEXTAUTH_URL && { url: process.env.NEXTAUTH_URL }),
+  ],
+  secret: process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET,
+  session: {
+    strategy: "jwt",
+  },
   callbacks: {
-    // This callback fires on login
-    async signIn({ user, account }) {
-      try {
-        if (account?.provider === "google" && user.email) {
-          // Check if user with this email already exists (from any provider)
-          const existingUser = await prisma.user.findUnique({
-            where: { email: user.email },
-          });
-
-          if (existingUser) {
-            // If exists, update account for Google provider
-            await prisma.account.upsert({
-              where: {
-                provider_providerAccountId: {
-                  provider: "google",
-                  providerAccountId: account.providerAccountId,
-                },
-              },
-              update: {
-                userId: existingUser.id,
-              },
-              create: {
-                userId: existingUser.id,
-                type: account.type,
-                provider: account.provider,
-                providerAccountId: account.providerAccountId,
-                refresh_token: account.refresh_token,
-                access_token: account.access_token,
-                expires_at: account.expires_at,
-                token_type: account.token_type,
-                scope: account.scope,
-                id_token: account.id_token,
-                session_state: account.session_state,
-              },
-            });
-            
-            // Replace current user id
-            user.id = existingUser.id;
-          }
-        }
-        return true;
-      } catch (error) {
-        console.error('Error in signIn callback:', error);
-        // Allow sign in even if there's an error with account linking
-        return true;
-      }
-    },
-
-    // Store unified id in JWT for Email and Google
-    async jwt({ token, user }) {
-      if (user) token.id = user.id;
-      return token;
-    },
-
     async session({ session, token }) {
-      if (token.id && session.user) session.user.id = token.id as string;
+      if (session.user) {
+        session.user.id = token.sub;
+      }
       return session;
     },
   },
-  debug: process.env.NODE_ENV === 'development',
-};
+});
 
-const handler = NextAuth(authOptions);
-
-// Wrap handlers with error handling
-const GET = async (
-  req: Request,
-  context: { params: Promise<{ nextauth: string[] }> }
-) => {
-  try {
-    return await handler(req, context);
-  } catch (error) {
-    console.error('NextAuth GET error:', error);
-    return new Response(
-      JSON.stringify({ 
-        error: 'Authentication error',
-        message: error instanceof Error ? error.message : 'Unknown error'
-      }),
-      { 
-        status: 500,
-        headers: { 'Content-Type': 'application/json' }
-      }
-    );
-  }
-};
-
-const POST = async (
-  req: Request,
-  context: { params: Promise<{ nextauth: string[] }> }
-) => {
-  try {
-    return await handler(req, context);
-  } catch (error) {
-    console.error('NextAuth POST error:', error);
-    return new Response(
-      JSON.stringify({ 
-        error: 'Authentication error',
-        message: error instanceof Error ? error.message : 'Unknown error'
-      }),
-      { 
-        status: 500,
-        headers: { 'Content-Type': 'application/json' }
-      }
-    );
-  }
-};
-
-export { GET, POST };
+export { handler as GET, handler as POST };
