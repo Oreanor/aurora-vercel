@@ -11,6 +11,7 @@ interface PersonAutocompleteProps {
   onChange: (personId: string) => void;
   placeholder?: string;
   className?: string;
+  required?: boolean;
 }
 
 export default function PersonAutocomplete({
@@ -20,6 +21,7 @@ export default function PersonAutocomplete({
   onChange,
   placeholder = 'Search for a person...',
   className = '',
+  required = false,
 }: PersonAutocompleteProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [isOpen, setIsOpen] = useState(false);
@@ -127,6 +129,7 @@ export default function PersonAutocomplete({
           onFocus={handleInputFocus}
           onKeyDown={handleKeyDown}
           placeholder={placeholder}
+          required={required}
           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400"
         />
         {isOpen && filteredPersons.length > 0 && (

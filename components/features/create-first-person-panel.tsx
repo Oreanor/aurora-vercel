@@ -5,6 +5,7 @@ import { Person, Gender, IQualities } from '@/types/family';
 import Button from '@/components/ui/button';
 import Input from '@/components/ui/input';
 import Select from '@/components/ui/select';
+import { formatDateForInput } from '@/lib/utils';
 
 interface CreateFirstPersonPanelProps {
   onClose: () => void;
@@ -62,15 +63,6 @@ export default function CreateFirstPersonPanel({ onClose, onSave }: CreateFirstP
     setQualities((prev) => ({ ...prev, [field]: value }));
   };
 
-  const formatDateForInput = (date: Date | string | undefined): string => {
-    if (!date) return '';
-    if (typeof date === 'string') return date;
-    const d = new Date(date);
-    const year = d.getFullYear();
-    const month = String(d.getMonth() + 1).padStart(2, '0');
-    const day = String(d.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
-  };
 
   return (
     <div className="fixed right-0 top-15 h-[calc(100vh-60px)] w-[min(50%,500px)] bg-white border-l border-gray-200 shadow-lg z-[100] flex flex-col">
@@ -90,40 +82,46 @@ export default function CreateFirstPersonPanel({ onClose, onSave }: CreateFirstP
           <div>
             <h3 className="text-lg font-semibold text-gray-900 mb-3">Basic Information</h3>
             <div className="space-y-4">
-              <Input
-                label="First Name *"
-                type="text"
-                required
-                value={formData.firstName}
-                onChange={(e) => handleChange('firstName', e.target.value)}
-              />
+              {/* First Name and Last Name in one row */}
+              <div className="grid grid-cols-2 gap-4">
+                <Input
+                  label="First Name *"
+                  type="text"
+                  required
+                  value={formData.firstName}
+                  onChange={(e) => handleChange('firstName', e.target.value)}
+                />
 
-              <Input
-                label="Last Name *"
-                type="text"
-                required
-                value={formData.lastName}
-                onChange={(e) => handleChange('lastName', e.target.value)}
-              />
+                <Input
+                  label="Last Name *"
+                  type="text"
+                  required
+                  value={formData.lastName}
+                  onChange={(e) => handleChange('lastName', e.target.value)}
+                />
+              </div>
 
-              <Input
-                label="Middle Name"
-                type="text"
-                value={formData.middleName || ''}
-                onChange={(e) => handleChange('middleName', e.target.value)}
-              />
+              {/* Middle Name and Gender in one row */}
+              <div className="grid grid-cols-2 gap-4">
+                <Input
+                  label="Middle Name"
+                  type="text"
+                  value={formData.middleName || ''}
+                  onChange={(e) => handleChange('middleName', e.target.value)}
+                />
 
-              <Select
-                label="Gender"
-                value={formData.gender || ''}
-                onChange={(e) => handleChange('gender', e.target.value as Gender | undefined || undefined)}
-                options={[
-                  { value: '', label: 'Select gender' },
-                  { value: 'male', label: 'Male' },
-                  { value: 'female', label: 'Female' },
-                  { value: 'other', label: 'Other' },
-                ]}
-              />
+                <Select
+                  label="Gender"
+                  value={formData.gender || ''}
+                  onChange={(e) => handleChange('gender', e.target.value as Gender | undefined || undefined)}
+                  options={[
+                    { value: '', label: 'Select gender' },
+                    { value: 'male', label: 'Male' },
+                    { value: 'female', label: 'Female' },
+                    { value: 'other', label: 'Other' },
+                  ]}
+                />
+              </div>
 
               <Input
                 label="Birth Date"

@@ -1,26 +1,26 @@
 /**
- * Типы данных для семейного дерева (React Flow)
+ * Data types for family tree (React Flow)
  */
 
 /**
- * Пол человека
+ * Person's gender
  */
 export type Gender = 'male' | 'female' | 'other';
 
 /**
- * Человек в семейном дереве
+ * Person in the family tree
  */
 export interface Person {
   id: string;
-  firstName: string; // имя
-  lastName: string; // фамилия
-  middleName?: string; // отчество
-  birthDate?: Date | string; // дата рождения
-  deathDate?: Date | string; // дата смерти (если человек умер)
-  gender?: Gender; // пол
-  photo?: string; // URL фотографии
-  qualities?: IQualities; // качества
-  email?: string; // email пользователя для идентификации и приглашений
+  firstName: string; // first name
+  lastName: string; // last name
+  middleName?: string; // middle name
+  birthDate?: Date | string; // birth date
+  deathDate?: Date | string; // death date (if person has died)
+  gender?: Gender; // gender
+  photo?: string; // photo URL
+  qualities?: IQualities; // qualities
+  email?: string; // user email for identification and invitations
 }
 
 export interface IQualities {
@@ -38,16 +38,16 @@ export interface IQualities {
 }
 
 /**
- * Связь родитель-ребенок
+ * Parent-child relationship
  */
 export interface Relationship {
   id: string;
-  parentId: string; // ID родителя
-  childId: string; // ID ребенка
+  parentId: string; // Parent ID
+  childId: string; // Child ID
 }
 
 /**
- * Данные генеалогического дерева для React Flow
+ * Family tree data for React Flow
  */
 export interface FamilyTreeData {
   persons: Person[];
@@ -55,23 +55,23 @@ export interface FamilyTreeData {
 }
 
 /**
- * Права доступа к дереву
+ * Tree access rights
  */
 export interface TreeAccess {
-  owner: string[];   // Массив email владельцев
-  editor: string[];  // Массив email редакторов
-  viewer: string[];  // Массив email просматривающих
+  owner: string[];   // Array of owner emails
+  editor: string[];  // Array of editor emails
+  viewer: string[];  // Array of viewer emails
 }
 
 /**
- * Дерево с метаданными и правами доступа
+ * Tree with metadata and access rights
  */
 export interface FamilyTree {
-  id: string;                    // Уникальный ID дерева
-  name?: string;                 // Название дерева (опционально)
-  data: FamilyTreeData;          // Данные дерева
-  access: TreeAccess;            // Права доступа
-  createdAt?: string;            // Дата создания
-  updatedAt?: string;            // Дата обновления
+  id: string;                    // Unique tree ID
+  name?: string;                 // Tree name (optional)
+  data: FamilyTreeData;          // Tree data
+  access: TreeAccess;            // Access rights
+  createdAt?: string;            // Creation date
+  updatedAt?: string;            // Update date
 }
 

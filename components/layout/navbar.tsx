@@ -61,7 +61,7 @@ export default function Navbar({ className = "" }: Props) {
     };
   }, []);
 
-  // Закрываем меню пользователя и селектора дерева при клике вне их
+  // Close user menu and tree selector when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
@@ -81,42 +81,57 @@ export default function Navbar({ className = "" }: Props) {
     };
   }, [isUserMenuOpen, isTreeDropdownOpen]);
 
-  // Загружаем список доступных деревьев для селектора
+  // Load list of available trees for selector
   useEffect(() => {
     if (!session?.user?.email || status !== 'authenticated') return;
 
     const loadTrees = async () => {
       try {
         const response = await getAvailableTrees(session.user.email!);
-        setAvailableTrees(response.trees);
         
-        // Загружаем полные данные деревьев для форматирования названий
-        const names: Record<string, string> = {};
-        await Promise.all(
-          response.trees.map(async (tree) => {
-            try {
-              const fullTree = await getTreeById(tree.id);
-              names[tree.id] = formatTreeNameShort(fullTree);
-            } catch (_err) {
-              names[tree.id] = tree.name || tree.id;
-            }
-          })
-        );
-        setTreeNames(names);
-
-        // Устанавливаем выбранное дерево из URL или первое доступное
-        const treeIdFromUrl = searchParams.get('treeId');
-        const initialTreeId = treeIdFromUrl || (response.trees.length > 0 ? response.trees[0].id : null);
-        if (initialTreeId && initialTreeId !== selectedTreeId) {
-          setSelectedTreeId(initialTreeId);
+        // Check if trees list changed
+        const treesChanged = 
+          availableTrees.length !== response.trees.length ||
+          availableTrees.some((tree, index) => tree.id !== response.trees[index]?.id);
+        
+        // Only update trees if list changed
+        if (treesChanged) {
+          setAvailableTrees(response.trees);
         }
         
-        // Показываем попап если нет деревьев (только один раз)
-        if (response.trees.length === 0 && pathname !== '/') {
-          // Небольшая задержка для плавного появления
-          setTimeout(() => {
-            setShowNoTreesModal(true);
-          }, 500);
+        // Load full tree data for formatting names only for trees that don't have names yet
+        const namesToLoad: Record<string, string> = { ...treeNames };
+        const treesToLoad = response.trees.filter(tree => !treeNames[tree.id]);
+        
+        if (treesToLoad.length > 0) {
+          await Promise.all(
+            treesToLoad.map(async (tree) => {
+              try {
+                const fullTree = await getTreeById(tree.id);
+                namesToLoad[tree.id] = formatTreeNameShort(fullTree);
+              } catch {
+                namesToLoad[tree.id] = tree.name || tree.id;
+              }
+            })
+          );
+          setTreeNames(namesToLoad);
+        }
+
+        // Set selected tree from URL or first available
+        // Always set if we have a treeId and selectedTreeId is null or different
+        // This ensures tree is selected even on Home page
+        const treeIdFromUrl = searchParams.get('treeId');
+        if (treeIdFromUrl) {
+          // If treeId in URL, use it
+          if (treeIdFromUrl !== selectedTreeId) {
+            setSelectedTreeId(treeIdFromUrl);
+          }
+        } else if (response.trees.length > 0) {
+          // If no treeId in URL, use first available tree (especially important on Home page)
+          const firstTreeId = response.trees[0].id;
+          if (!selectedTreeId || firstTreeId !== selectedTreeId) {
+            setSelectedTreeId(firstTreeId);
+          }
         }
       } catch (err) {
         console.error('Error loading trees in navbar:', err);
@@ -124,26 +139,41 @@ export default function Navbar({ className = "" }: Props) {
     };
 
     loadTrees();
-  }, [session?.user?.email, status, searchParams, pathname, selectedTreeId, setSelectedTreeId]);
+    // Include pathname to ensure trees are loaded when navigating to Home
+    // Remove selectedTreeId and setSelectedTreeId from dependencies to avoid re-render cycle
+    // setSelectedTreeId is now memoized in context and stable
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [session?.user?.email, status, searchParams, pathname]);
 
-  // Обработчик изменения дерева
+  // Show popup if no trees (separate effect to avoid re-running tree loading)
+  useEffect(() => {
+    if (availableTrees.length === 0 && pathname !== '/' && session && status === 'authenticated') {
+      // Small delay for smooth appearance
+      const timeoutId = setTimeout(() => {
+        setShowNoTreesModal(true);
+      }, 500);
+      return () => clearTimeout(timeoutId);
+    }
+  }, [availableTrees.length, pathname, session, status]);
+
+  // Handler for tree change
   const handleTreeChange = (treeId: string) => {
     setSelectedTreeId(treeId);
     setIsTreeDropdownOpen(false);
   };
 
-  // Обработчик создания первого дерева
+  // Handler for creating first tree
   const handleCreateFirstTree = () => {
     setShowNoTreesModal(false);
     setShowCreateFirstPerson(true);
   };
 
-  // Обработчик сохранения первой персоны и создания дерева
+  // Handler for saving first person and creating tree
   const handleSaveFirstPerson = async (person: Omit<Person, 'id'>) => {
     if (!session?.user?.email) return;
 
     try {
-      // Создаем дерево с одной персоной
+      // Create tree with one person
       const treeData: FamilyTreeData = {
         persons: [{
           ...person,
@@ -154,25 +184,25 @@ export default function Navbar({ className = "" }: Props) {
 
       const newTree = await createTree(session.user.email, treeData);
       
-      // Обновляем список деревьев
+      // Update trees list
       const response = await getAvailableTrees(session.user.email);
       setAvailableTrees(response.trees);
       
-      // Загружаем названия
+      // Load names
       const names: Record<string, string> = {};
       await Promise.all(
         response.trees.map(async (tree) => {
           try {
             const fullTree = await getTreeById(tree.id);
             names[tree.id] = formatTreeNameShort(fullTree);
-          } catch (err) {
+          } catch {
             names[tree.id] = tree.name || tree.id;
           }
         })
       );
       setTreeNames(names);
 
-      // Устанавливаем новое дерево и переходим на Tree
+      // Set new tree and navigate to Tree
       setSelectedTreeId(newTree.id);
       setShowCreateFirstPerson(false);
       router.push(`/tree?treeId=${newTree.id}`);
@@ -281,7 +311,7 @@ export default function Navbar({ className = "" }: Props) {
 
           {/* Right side: Tree Selector and User Menu */}
           <div className="flex items-center space-x-4">
-            {/* Tree Selector - только для залогиненных пользователей */}
+            {/* Tree Selector - only for logged in users */}
             {session && availableTrees.length > 0 && (
               <div className="hidden md:flex items-center relative" ref={treeDropdownRef}>
                 <button

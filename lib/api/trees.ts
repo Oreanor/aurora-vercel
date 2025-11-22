@@ -77,3 +77,30 @@ export async function createTree(email: string, treeData: FamilyTreeData): Promi
   return response.json();
 }
 
+/**
+ * Обновить данные дерева
+ * @param treeId - ID дерева
+ * @param treeData - Новые данные дерева
+ * @returns Обновленные данные дерева
+ */
+export async function updateTree(treeId: string, treeData: FamilyTreeData): Promise<FamilyTree> {
+  const response = await fetch(`/api/trees/${treeId}`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      treeData: {
+        data: treeData,
+      },
+    }),
+  });
+  
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.error || `Failed to update tree: ${response.statusText}`);
+  }
+  
+  return response.json();
+}
+

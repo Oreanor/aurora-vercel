@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useEffect, useState, useCallback } from 'react';
+import { useMemo, useEffect, useState, useCallback, useRef } from 'react';
 import {
   ReactFlow,
   Background,
@@ -14,7 +14,7 @@ import {
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { FamilyTreeData, Person, Relationship } from '@/types/family';
-import { findMainPersonId, getPersonFullName, canAddParent, relationshipExists } from '@/lib/utils';
+import { findMainPersonId, getPersonFullName, canAddParent, relationshipExists, findAllAncestorIds } from '@/lib/utils';
 import FamilyNode from './family-node';
 import SpouseRingNode from './spouse-ring-node';
 import PersonDetailsPanel from './person-details-panel';
@@ -23,36 +23,36 @@ import AddPersonPanel from './add-person-panel';
 interface Props {
   data: FamilyTreeData;
   className?: string;
-  currentUserEmail?: string; // Email текущего пользователя для отображения дерева относительно него
+  currentUserEmail?: string; // Email of the current user for displaying the tree relative to them
 }
 
 /**
- * Преобразует данные семейного дерева в формат React Flow
- * @param data - данные семейного дерева
- * @param currentUserEmail - email текущего пользователя (опционально). Если передан, дерево будет отображаться относительно этого пользователя
- * @param selectedNodeId - ID выбранного узла (опционально)
+ * Transforms family tree data into React Flow format
+ * @param data - family tree data
+ * @param currentUserEmail - current user's email (optional). If provided, the tree will be displayed relative to this user
+ * @param selectedNodeId - ID of the selected node (optional)
  */
 function transformToFlowData(data: FamilyTreeData, currentUserEmail?: string, selectedNodeId?: string) {
   const nodes: Node[] = [];
   const edges: Edge[] = [];
 
-  // Определяем главного человека (корневой узел дерева)
+  // Determine the main person (root node of the tree)
   const mainPersonId = findMainPersonId(
     data.persons,
     data.relationships,
     currentUserEmail
   );
   
-  // Правильный алгоритм: строим дерево от главного человека вверх и вниз
-  // Главный человек = уровень 0, его родители = уровень 1, дедушки = уровень 2, и т.д.
-  // Дети главного человека = уровень -1, внуки = уровень -2, и т.д.
+  // Correct algorithm: build tree from main person up and down
+  // Main person = level 0, their parents = level 1, grandparents = level 2, etc.
+  // Main person's children = level -1, grandchildren = level -2, etc.
   const levelsFromMain = new Map<string, number>();
   
-  // Главный человек на уровне 0
+  // Main person at level 0
   levelsFromMain.set(mainPersonId, 0);
   
-  // BFS от главного человека: вычисляем уровни всех предков (вверх)
-  // Главный человек = уровень 0, его родители = уровень 1, дедушки = уровень 2, и т.д.
+  // BFS from main person: calculate levels of all ancestors (upward)
+  // Main person = level 0, their parents = level 1, grandparents = level 2, etc.
   let currentLevel = 0;
   let toProcess = [mainPersonId];
   const processed = new Set<string>([mainPersonId]);
@@ -60,20 +60,20 @@ function transformToFlowData(data: FamilyTreeData, currentUserEmail?: string, se
   while (toProcess.length > 0) {
     const nextLevel: string[] = [];
     
-    // Обрабатываем всех людей на текущем уровне
+    // Process all people at the current level
     toProcess.forEach((personId) => {
-      // Находим всех родителей этого человека (вверх)
+      // Find all parents of this person (upward)
       const parents = data.relationships
         .filter((rel) => rel.childId === personId)
         .map((rel) => rel.parentId)
         .filter((pid) => !processed.has(pid));
       
       parents.forEach((parentId) => {
-        // Устанавливаем уровень родителя
+        // Set parent level
         const parentLevel = currentLevel + 1;
         const existingLevel = levelsFromMain.get(parentId);
         
-        // Если уровень еще не установлен или меньше нужного, устанавливаем
+        // If level is not set or is less than needed, set it
         if (existingLevel === undefined || existingLevel < parentLevel) {
           levelsFromMain.set(parentId, parentLevel);
         }
@@ -89,8 +89,8 @@ function transformToFlowData(data: FamilyTreeData, currentUserEmail?: string, se
     currentLevel++;
   }
   
-  // BFS от главного человека: вычисляем уровни всех потомков (вниз)
-  // Дети главного человека = уровень -1, внуки = уровень -2, и т.д.
+  // BFS from main person: calculate levels of all descendants (downward)
+  // Main person's children = level -1, grandchildren = level -2, etc.
   currentLevel = 0;
   toProcess = [mainPersonId];
   processed.clear();
@@ -99,20 +99,20 @@ function transformToFlowData(data: FamilyTreeData, currentUserEmail?: string, se
   while (toProcess.length > 0) {
     const nextLevel: string[] = [];
     
-    // Обрабатываем всех людей на текущем уровне
+    // Process all people at the current level
     toProcess.forEach((personId) => {
-      // Находим всех детей этого человека (вниз)
+      // Find all children of this person (downward)
       const children = data.relationships
         .filter((rel) => rel.parentId === personId)
         .map((rel) => rel.childId)
         .filter((childId) => !processed.has(childId));
       
       children.forEach((childId) => {
-        // Устанавливаем уровень ребенка
+        // Set child level
         const childLevel = currentLevel - 1;
         const existingLevel = levelsFromMain.get(childId);
         
-        // Если уровень еще не установлен или больше нужного (ближе к 0), устанавливаем
+        // If level is not set or is greater than needed (closer to 0), set it
         if (existingLevel === undefined || existingLevel > childLevel) {
           levelsFromMain.set(childId, childLevel);
         }
@@ -128,16 +128,16 @@ function transformToFlowData(data: FamilyTreeData, currentUserEmail?: string, se
     currentLevel--;
   }
   
-  // Обрабатываем оставшихся людей (если есть изолированные узлы)
+  // Process remaining people (if there are isolated nodes)
   data.persons.forEach((person) => {
     if (!levelsFromMain.has(person.id)) {
-      // Если у человека нет связи с главным человеком, устанавливаем высокий уровень
+      // If person has no connection to main person, set high level
       levelsFromMain.set(person.id, 999);
     }
   });
   
-  // Выравниваем уровни родителей одного ребенка
-  // Если у ребенка есть два родителя, они должны быть на одном уровне
+  // Align levels of parents of the same child
+  // If a child has two parents, they should be at the same level
   let changed = true;
   let iterations = 0;
   const maxIterations = data.persons.length * 2;
@@ -146,7 +146,7 @@ function transformToFlowData(data: FamilyTreeData, currentUserEmail?: string, se
     changed = false;
     iterations++;
     
-    // Группируем по детям
+    // Group by children
     const childrenByParents = new Map<string, Set<string>>();
   data.relationships.forEach((rel) => {
       const childId = rel.childId;
@@ -157,7 +157,7 @@ function transformToFlowData(data: FamilyTreeData, currentUserEmail?: string, se
     });
     
     childrenByParents.forEach((parentIds, childId) => {
-      if (parentIds.size <= 1) return; // Один родитель - не нужно выравнивать
+      if (parentIds.size <= 1) return; // One parent - no need to align
       
       const parentLevels = Array.from(parentIds)
         .map((pid) => levelsFromMain.get(pid))
@@ -168,7 +168,7 @@ function transformToFlowData(data: FamilyTreeData, currentUserEmail?: string, se
         const minParentLevel = Math.min(...parentLevels);
         
         if (maxParentLevel !== minParentLevel) {
-          // Выравниваем всех родителей на максимальный уровень
+          // Align all parents to the maximum level
           parentIds.forEach((pid) => {
             const currentLevel = levelsFromMain.get(pid);
             if (currentLevel !== undefined && currentLevel < maxParentLevel) {
@@ -177,10 +177,15 @@ function transformToFlowData(data: FamilyTreeData, currentUserEmail?: string, se
             }
           });
           
-          // Пересчитываем уровень ребенка
-          const childLevel = maxParentLevel + 1;
+          // Recalculate child level
+          // If parent is at negative level (descendant), child should be even lower (more negative)
+          // If parent is at positive level (ancestor), child should be higher (more positive)
+          // If parent is at level 0 (main person), child should be at level -1 (descendant)
+          const childLevel = maxParentLevel < 0 ? maxParentLevel - 1 : (maxParentLevel === 0 ? -1 : maxParentLevel + 1);
           const currentChildLevel = levelsFromMain.get(childId);
-          if (currentChildLevel === undefined || currentChildLevel !== childLevel) {
+          if (currentChildLevel === undefined || 
+              (maxParentLevel < 0 && currentChildLevel > childLevel) || 
+              (maxParentLevel >= 0 && currentChildLevel < childLevel)) {
             levelsFromMain.set(childId, childLevel);
             changed = true;
           }
@@ -188,7 +193,7 @@ function transformToFlowData(data: FamilyTreeData, currentUserEmail?: string, se
       }
     });
     
-    // Пересчитываем уровни всех потомков измененных родителей
+    // Recalculate levels of all descendants of changed parents
     if (changed) {
       const recalculateDescendants = (personId: string, visited = new Set<string>()) => {
         if (visited.has(personId)) return;
@@ -210,13 +215,13 @@ function transformToFlowData(data: FamilyTreeData, currentUserEmail?: string, se
             
             if (parentLevels.length === allParents.length && parentLevels.length > 0) {
               const maxParentLevel = Math.max(...parentLevels);
-              // Если родитель на отрицательном уровне (потомок), ребенок должен быть еще ниже
-              // Если родитель на положительном уровне (предок), ребенок должен быть выше
-              // Определяем направление: если maxParentLevel < 0, то идем вниз (уменьшаем), иначе вверх (увеличиваем)
+              // If parent is at negative level (descendant), child should be even lower
+              // If parent is at positive level (ancestor), child should be higher
+              // Determine direction: if maxParentLevel < 0, go down (decrease), otherwise up (increase)
               const childLevel = maxParentLevel < 0 ? maxParentLevel - 1 : maxParentLevel + 1;
               
               const currentLevel = levelsFromMain.get(childId);
-              // Обновляем уровень, если он не установлен или не соответствует вычисленному
+              // Update level if it's not set or doesn't match calculated value
               if (currentLevel === undefined || 
                   (maxParentLevel < 0 && currentLevel > childLevel) || 
                   (maxParentLevel >= 0 && currentLevel < childLevel)) {
@@ -228,27 +233,27 @@ function transformToFlowData(data: FamilyTreeData, currentUserEmail?: string, se
         });
       };
       
-      // Пересчитываем всех потомков измененных родителей
+      // Recalculate all descendants of changed parents
   data.persons.forEach((person) => {
         recalculateDescendants(person.id);
       });
     }
   }
   
-  // Нормализуем уровни: главный человек всегда на уровне 0
-  // Потомки получают отрицательные уровни, предки - положительные
-  // Не сдвигаем уровни, оставляем главного человека на уровне 0
+  // Normalize levels: main person is always at level 0
+  // Descendants get negative levels, ancestors - positive levels
+  // Don't shift levels, keep main person at level 0
   const normalizedLevels = new Map<string, number>();
   levelsFromMain.forEach((level, personId) => {
     if (level === 999) {
       normalizedLevels.set(personId, 999);
     } else {
-      // Оставляем уровни как есть: главный человек = 0, потомки = -1, -2, ..., предки = 1, 2, ...
+      // Keep levels as is: main person = 0, descendants = -1, -2, ..., ancestors = 1, 2, ...
       normalizedLevels.set(personId, level);
     }
   });
 
-  // Группируем персон по уровням
+  // Group persons by level
   const personsByLevel = new Map<number, Person[]>();
   data.persons.forEach((person) => {
     const level = normalizedLevels.get(person.id);
@@ -260,42 +265,42 @@ function transformToFlowData(data: FamilyTreeData, currentUserEmail?: string, se
     }
   });
 
-  // Создаем узлы с позиционированием относительно потомков
-  // Уровень 0 (главный человек) внизу, больший уровень выше
-  const nodeWidth = 200; // Ширина узла
-  const minSpouseGap = 0; // Минимальное расстояние между краями узлов супругов (уменьшено на 10px для сближения)
-  const minSpouseDistance = nodeWidth + minSpouseGap; // Расстояние между центрами супругов (ширина узла + зазор)
-  const basePairSpacing = 400; // Базовое расстояние между разными парами родителей на одном уровне
-  const minNodeDistance = 250; // Минимальное расстояние между узлами из разных веток на одном уровне
-  const levelSpacing = 250; // Расстояние между уровнями по вертикали
-  const startY = 500; // Начальная позиция снизу
-  const centerX = 0; // Центр по горизонтали
+  // Create nodes with positioning relative to descendants
+  // Level 0 (main person) at bottom, higher level above
+  const nodeWidth = 200; // Node width
+  const minSpouseGap = 0; // Minimum distance between edges of spouse nodes (reduced by 10px for closer positioning)
+  const minSpouseDistance = nodeWidth + minSpouseGap; // Distance between centers of spouses (node width + gap)
+  const basePairSpacing = 400; // Base distance between different parent pairs at the same level
+  const minNodeDistance = 250; // Minimum distance between nodes from different branches at the same level
+  const levelSpacing = 250; // Distance between levels vertically
+  const startY = 500; // Initial position from bottom
+  const centerX = 0; // Center horizontally
   
-  // Находим минимальный и максимальный нормализованные уровни (исключая изолированные узлы)
+  // Find minimum and maximum normalized levels (excluding isolated nodes)
   const validNormalizedLevels = Array.from(normalizedLevels.values()).filter((l) => l !== 999);
   const minNormalizedLevel = validNormalizedLevels.length > 0 ? Math.min(...validNormalizedLevels) : 0;
   const maxNormalizedLevel = validNormalizedLevels.length > 0 ? Math.max(...validNormalizedLevels) : 0;
   
-  // Вычисляем смещение для Y позиции: главный человек (level 0) должен быть внизу
-  // Потомки (level < 0) должны быть выше главного (меньше Y), предки (level > 0) еще выше
-  // Используем: y = startY + (0 - level) * levelSpacing для потомков
-  // и y = startY - level * levelSpacing для предков
-  // Или проще: y = startY - level * levelSpacing (потомки с отрицательным level будут ниже)
+  // Calculate offset for Y position: main person (level 0) should be at bottom
+  // Descendants (level < 0) should be above main person (less Y), ancestors (level > 0) even higher
+  // Use: y = startY + (0 - level) * levelSpacing for descendants
+  // and y = startY - level * levelSpacing for ancestors
+  // Or simpler: y = startY - level * levelSpacing (descendants with negative level will be lower)
   
-  // Вычисляем коэффициент уменьшения расстояния между парами для каждого уровня
-  // Чем выше уровень (больше поколений), тем меньше расстояние между разными парами родителей
+  // Calculate reduction factor for distance between pairs for each level
+  // Higher level (more generations) means smaller distance between different parent pairs
   const getPairSpacing = (level: number): number => {
     if (maxNormalizedLevel === 0) return basePairSpacing;
-    // Уменьшаем расстояние между парами пропорционально уровню
-    // Уровень 1: 100%, уровень 2: 70%, уровень 3: 50%, и т.д.
+    // Reduce distance between pairs proportionally to level
+    // Level 1: 100%, level 2: 70%, level 3: 50%, etc.
     const reductionFactor = 1 - (level - 1) * 0.3 / maxNormalizedLevel;
     return Math.max(basePairSpacing * reductionFactor, minSpouseDistance * 3);
   };
   
-  // Вычисляем позиции для всех уровней снизу вверх (от главного человека к предкам)
+  // Calculate positions for all levels from bottom to top (from main person to ancestors)
   const nodePositions = new Map<string, { x: number; y: number }>();
   
-  // Функция для проверки и корректировки позиции, чтобы избежать наложений
+  // Function to check and adjust position to avoid overlaps
   const adjustPositionToAvoidOverlap = (
     desiredX: number,
     y: number,
@@ -303,7 +308,7 @@ function transformToFlowData(data: FamilyTreeData, currentUserEmail?: string, se
     excludePersonId?: string,
     spouseId?: string
   ): number => {
-    // Получаем все уже размещенные узлы на этом уровне
+    // Get all already placed nodes at this level
     const existingPositions: number[] = [];
     personsByLevel.get(level)?.forEach((person) => {
       if (person.id !== excludePersonId && person.id !== spouseId) {
@@ -314,21 +319,21 @@ function transformToFlowData(data: FamilyTreeData, currentUserEmail?: string, se
       }
     });
     
-    // Сортируем позиции
+    // Sort positions
     existingPositions.sort((a, b) => a - b);
     
-    // Проверяем, не накладывается ли желаемая позиция
+    // Check if desired position overlaps
     let adjustedX = desiredX;
     const hasOverlap = existingPositions.some((x) => Math.abs(x - adjustedX) < minNodeDistance);
     
     if (hasOverlap) {
-      // Находим ближайшую свободную позицию
+      // Find nearest free position
       let bestX = adjustedX;
       let minDistance = Infinity;
       
-      // Проверяем позиции слева и справа
+      // Check positions left and right
       for (let offset = minNodeDistance; offset < minNodeDistance * 10; offset += minNodeDistance) {
-        // Пробуем слева
+        // Try left
         const leftX = adjustedX - offset;
         const leftOverlap = existingPositions.some((x) => Math.abs(x - leftX) < minNodeDistance);
         if (!leftOverlap) {
@@ -339,7 +344,7 @@ function transformToFlowData(data: FamilyTreeData, currentUserEmail?: string, se
           }
         }
         
-        // Пробуем справа
+        // Try right
         const rightX = adjustedX + offset;
         const rightOverlap = existingPositions.some((x) => Math.abs(x - rightX) < minNodeDistance);
         if (!rightOverlap) {
@@ -357,29 +362,29 @@ function transformToFlowData(data: FamilyTreeData, currentUserEmail?: string, se
     return adjustedX;
   };
   
-  // Обрабатываем все уровни от минимального к максимальному
-  // Уровень 0 (главный человек) должен быть внизу, потомки (level < 0) ниже него, предки (level > 0) выше
-  // Y увеличивается вниз, поэтому: потомки должны иметь больший Y, предки - меньший Y
+  // Process all levels from minimum to maximum
+  // Level 0 (main person) should be at bottom, descendants (level < 0) below it, ancestors (level > 0) above
+  // Y increases downward, so: descendants should have greater Y, ancestors - smaller Y
   for (let level = minNormalizedLevel; level <= maxNormalizedLevel; level++) {
     const persons = personsByLevel.get(level) || [];
-    // Вычисляем Y позицию: 
-    // - Главный человек (level 0): y = startY
-    // - Потомки (level < 0, например -1): y = startY - level * spacing = startY + spacing (ниже)
-    // - Предки (level > 0, например 1): y = startY - level * spacing = startY - spacing (выше)
+    // Calculate Y position: 
+    // - Main person (level 0): y = startY
+    // - Descendants (level < 0, e.g. -1): y = startY - level * spacing = startY + spacing (lower)
+    // - Ancestors (level > 0, e.g. 1): y = startY - level * spacing = startY - spacing (higher)
     const y = startY - level * levelSpacing;
     
     if (level === 0) {
-      // Главный человек в центре
+      // Main person in center
       persons.forEach((person) => {
         nodePositions.set(person.id, { x: centerX, y });
       });
     } else if (level > 0) {
-      // Для предков позиционируем относительно их детей
-      // Сначала группируем родителей по их общим детям (супруги)
+      // For ancestors, position relative to their children
+      // First, group parents by their common children (spouses)
       const parentGroups = new Map<string, Person[]>();
       
       persons.forEach((person) => {
-        // Находим всех детей этого человека на следующем уровне вниз (level - 1)
+        // Find all children of this person at the next level down (level - 1)
         const children = data.relationships
           .filter((rel) => rel.parentId === person.id)
           .map((rel) => rel.childId)
@@ -389,7 +394,7 @@ function transformToFlowData(data: FamilyTreeData, currentUserEmail?: string, se
           });
         
         if (children.length > 0) {
-          // Создаем ключ группы на основе отсортированных ID детей
+          // Create group key based on sorted child IDs
           const childrenKey = children.sort().join(',');
           
           if (!parentGroups.has(childrenKey)) {
@@ -399,10 +404,10 @@ function transformToFlowData(data: FamilyTreeData, currentUserEmail?: string, se
         }
       });
       
-      // Получаем расстояние между парами для этого уровня
+      // Get distance between pairs for this level
       const pairSpacing = getPairSpacing(level);
       
-      // Сортируем группы по позиции их детей (слева направо)
+      // Sort groups by their children's positions (left to right)
       const sortedGroups = Array.from(parentGroups.entries()).sort(([key1], [key2]) => {
         const children1 = key1.split(',').map((id) => nodePositions.get(id)?.x ?? 0);
         const children2 = key2.split(',').map((id) => nodePositions.get(id)?.x ?? 0);
@@ -411,11 +416,11 @@ function transformToFlowData(data: FamilyTreeData, currentUserEmail?: string, se
         return avg1 - avg2;
       });
       
-      // Обрабатываем каждую группу супругов с учетом расстояния между парами
+      // Process each spouse group considering distance between pairs
       sortedGroups.forEach(([childrenKey, parentGroup], groupIndex) => {
         const childrenIds = childrenKey.split(',');
         
-        // Вычисляем среднюю позицию всех детей этой группы
+        // Calculate average position of all children in this group
         const childPositions = childrenIds
           .map((childId) => nodePositions.get(childId))
           .filter((pos): pos is { x: number; y: number } => pos !== undefined);
@@ -423,22 +428,22 @@ function transformToFlowData(data: FamilyTreeData, currentUserEmail?: string, se
         if (childPositions.length > 0) {
           const avgChildX = childPositions.reduce((sum, pos) => sum + pos.x, 0) / childPositions.length;
           
-          // Вычисляем желаемую позицию центра пары с учетом расстояния между парами
-          // Первая пара в центре, остальные сдвигаются влево/вправо
+          // Calculate desired position of pair center considering distance between pairs
+          // First pair in center, others shift left/right
           let pairCenterX = avgChildX;
           if (sortedGroups.length > 1) {
-            // Вычисляем общий центр всех детей всех групп
+            // Calculate overall center of all children of all groups
             const allChildPositions = sortedGroups.flatMap(([key]) => {
               return key.split(',').map((id) => nodePositions.get(id)?.x ?? 0);
             });
             const overallCenter = allChildPositions.reduce((sum, x) => sum + x, 0) / allChildPositions.length;
             
-            // Сдвигаем пары относительно общего центра
+            // Shift pairs relative to overall center
             const offsetFromCenter = (groupIndex - (sortedGroups.length - 1) / 2) * pairSpacing;
             pairCenterX = overallCenter + offsetFromCenter;
           }
           
-          // Сортируем родителей: мужчины слева, женщины справа
+          // Sort parents: males left, females right
           const sortedParents = [...parentGroup].sort((a, b) => {
             if (a.gender === 'male' && b.gender !== 'male') return -1;
             if (a.gender !== 'male' && b.gender === 'male') return 1;
@@ -446,56 +451,56 @@ function transformToFlowData(data: FamilyTreeData, currentUserEmail?: string, se
           });
           
           if (sortedParents.length === 1) {
-            // Один родитель - симметрично над ребенком
+            // One parent - symmetrically above child
             const person = sortedParents[0];
             const adjustedX = adjustPositionToAvoidOverlap(pairCenterX, y, level, person.id);
             nodePositions.set(person.id, { x: adjustedX, y });
           } else if (sortedParents.length === 2) {
-            // Два родителя (супруги) - симметрично над центром пары с минимальным расстоянием между ними
+            // Two parents (spouses) - symmetrically above pair center with minimum distance between them
             const [parent1, parent2] = sortedParents;
             
-            // Вычисляем позиции симметрично относительно центра пары
-            // Расстояние между супругами всегда минимальное (10px)
+            // Calculate positions symmetrically relative to pair center
+            // Distance between spouses is always minimum (10px)
             const halfDistance = minSpouseDistance / 2;
             const desiredX1 = pairCenterX - halfDistance;
             
-            // Размещаем первого родителя
+            // Place first parent
             const adjustedX1 = adjustPositionToAvoidOverlap(desiredX1, y, level, parent1.id, parent2.id);
             nodePositions.set(parent1.id, { x: adjustedX1, y });
             
-            // Размещаем второго родителя симметрично относительно центра пары
-            // Вычисляем фактическое смещение первого родителя от центра
+            // Place second parent symmetrically relative to pair center
+            // Calculate actual offset of first parent from center
             const actualOffset1 = pairCenterX - adjustedX1;
-            // Второй родитель должен быть на таком же расстоянии справа
+            // Second parent should be at the same distance to the right
             const desiredX2Symmetric = pairCenterX + actualOffset1;
-            // Но не ближе минимального расстояния между супругами
+            // But not closer than minimum distance between spouses
             const minX2 = adjustedX1 + minSpouseDistance;
             const finalX2 = Math.max(desiredX2Symmetric, minX2);
             
             const adjustedX2 = adjustPositionToAvoidOverlap(finalX2, y, level, parent2.id, parent1.id);
             nodePositions.set(parent2.id, { x: adjustedX2, y });
             
-            // Добавляем два желтых колечка между супругами
-            // Аватары находятся в центре узла по X (adjustedX1 и adjustedX2)
-            // Аватар находится на -30px от верха узла, узел высотой 180px
-            // Центр узла на y, верх узла на y - 90, аватар на y - 90 + 30 = y - 60
-            // Колечки должны быть между аватарами и пересекаться друг с другом
-            // Сдвигаем их правее (к правому супругу) и ниже (ближе к детям)
+            // Add two yellow rings between spouses
+            // Avatars are at node center by X (adjustedX1 and adjustedX2)
+            // Avatar is at -30px from top of node, node height is 180px
+            // Node center at y, node top at y - 90, avatar at y - 90 + 30 = y - 60
+            // Rings should be between avatars and overlap each other
+            // Shift them right (toward right spouse) and down (closer to children)
             const centerBetweenAvatars = (adjustedX1 + adjustedX2) / 2;
-            const ringOffset = 10; // Смещение для пересечения колечек (колечки размером 28px, смещение 10px = они пересекаются)
-            const rightOffset = 85; // Смещение вправо от центра
+            const ringOffset = 10; // Offset for ring overlap (rings are 28px, offset 10px = they overlap)
+            const rightOffset = 85; // Offset to the right from center
             const ring1X = centerBetweenAvatars - ringOffset + rightOffset;
             const ring2X = centerBetweenAvatars + ringOffset + rightOffset;
-            // Позиционируем колечки ниже аватаров (y - 40 от центра узла, вместо y - 60)
+            // Position rings below avatars (y - 40 from node center, instead of y - 60)
             const ringY = y + 35;
             
-            // Сохраняем позиции колечек для последующего создания узлов
+            // Save ring positions for subsequent node creation
             if (!nodePositions.has(`ring-${parent1.id}-${parent2.id}-1`)) {
               nodePositions.set(`ring-${parent1.id}-${parent2.id}-1`, { x: ring1X, y: ringY });
               nodePositions.set(`ring-${parent1.id}-${parent2.id}-2`, { x: ring2X, y: ringY });
             }
           } else {
-            // Больше двух родителей - распределяем симметрично с минимальным расстоянием между соседними
+            // More than two parents - distribute symmetrically with minimum distance between adjacent ones
             sortedParents.forEach((person, index) => {
               const totalWidth = minSpouseDistance * (sortedParents.length - 1);
               const spacing = sortedParents.length > 1 ? totalWidth / (sortedParents.length - 1) : 0;
@@ -514,7 +519,7 @@ function transformToFlowData(data: FamilyTreeData, currentUserEmail?: string, se
         }
       });
       
-      // Обрабатываем родителей без детей на следующем уровне
+      // Process parents without children at the next level
       persons.forEach((person) => {
         if (!nodePositions.has(person.id)) {
           const adjustedX = adjustPositionToAvoidOverlap(centerX, y, level, person.id);
@@ -522,13 +527,13 @@ function transformToFlowData(data: FamilyTreeData, currentUserEmail?: string, se
         }
       });
     } else {
-      // Для потомков (level < 0, но после нормализации это level > 0, но меньше уровня главного человека)
-      // Потомки позиционируются относительно их родителей
-      // Группируем детей по их общим родителям (братья/сестры)
+      // For descendants (level < 0, but after normalization this is level > 0, but less than main person level)
+      // Descendants are positioned relative to their parents
+      // Group children by their common parents (siblings)
       const childrenGroups = new Map<string, Person[]>();
       
       persons.forEach((person) => {
-        // Находим всех родителей этого человека на следующем уровне вверх (level + 1)
+        // Find all parents of this person at the next level up (level + 1)
         const parents = data.relationships
           .filter((rel) => rel.childId === person.id)
           .map((rel) => rel.parentId)
@@ -538,7 +543,7 @@ function transformToFlowData(data: FamilyTreeData, currentUserEmail?: string, se
           });
         
         if (parents.length > 0) {
-          // Создаем ключ группы на основе отсортированных ID родителей
+          // Create group key based on sorted parent IDs
           const parentsKey = parents.sort().join(',');
           
           if (!childrenGroups.has(parentsKey)) {
@@ -548,11 +553,11 @@ function transformToFlowData(data: FamilyTreeData, currentUserEmail?: string, se
         }
       });
       
-      // Обрабатываем каждую группу братьев/сестер
+      // Process each sibling group
       childrenGroups.forEach((childrenGroup, parentsKey) => {
         const parentIds = parentsKey.split(',');
         
-        // Вычисляем среднюю позицию всех родителей этой группы
+        // Calculate average position of all parents in this group
         const parentPositions = parentIds
           .map((parentId) => nodePositions.get(parentId))
           .filter((pos): pos is { x: number; y: number } => pos !== undefined);
@@ -560,9 +565,9 @@ function transformToFlowData(data: FamilyTreeData, currentUserEmail?: string, se
         if (parentPositions.length > 0) {
           const avgParentX = parentPositions.reduce((sum, pos) => sum + pos.x, 0) / parentPositions.length;
           
-          // Распределяем детей горизонтально под родителями
+          // Distribute children horizontally under parents
           const childrenCount = childrenGroup.length;
-          const spacing = Math.max(minSpouseDistance, 250); // Расстояние между детьми
+          const spacing = Math.max(minSpouseDistance, 250); // Distance between children
           const totalWidth = spacing * (childrenCount - 1);
           const startX = avgParentX - totalWidth / 2;
           
@@ -574,7 +579,7 @@ function transformToFlowData(data: FamilyTreeData, currentUserEmail?: string, se
         }
       });
       
-      // Обрабатываем детей без родителей на следующем уровне
+      // Process children without parents at the next level
       persons.forEach((person) => {
         if (!nodePositions.has(person.id)) {
           const adjustedX = adjustPositionToAvoidOverlap(centerX, y, level, person.id);
@@ -584,7 +589,7 @@ function transformToFlowData(data: FamilyTreeData, currentUserEmail?: string, se
     }
   }
   
-  // Создаем узлы с вычисленными позициями
+  // Create nodes with calculated positions
   data.persons.forEach((person) => {
     const position = nodePositions.get(person.id) || { x: 0, y: 0 };
     const isMainPerson = person.id === mainPersonId;
@@ -608,12 +613,12 @@ function transformToFlowData(data: FamilyTreeData, currentUserEmail?: string, se
     });
   });
 
-  // Создаем связи с толщиной, зависящей от уровня
-  // Функция для вычисления толщины связи на основе уровня родителя
+  // Create edges with thickness depending on level
+  // Function to calculate edge thickness based on parent level
   const getStrokeWidth = (parentLevel: number): number => {
-    // Уровень 0 (главный человек) -> 50px, каждый следующий уровень вдвое тоньше
+    // Level 0 (main person) -> 50px, each next level is twice thinner
     const width = 40 / Math.pow(2, parentLevel);
-    // Минимум 4px
+    // Minimum 4px
     return Math.max(Math.round(width), 4);
   };
 
@@ -631,7 +636,7 @@ function transformToFlowData(data: FamilyTreeData, currentUserEmail?: string, se
     });
   });
   
-  // Создаем узлы для желтых колечек между супругами
+  // Create nodes for yellow rings between spouses
   nodePositions.forEach((position, nodeId) => {
     if (nodeId.startsWith('ring-')) {
       nodes.push({
@@ -656,15 +661,25 @@ const nodeTypes = {
   spouseRingNode: SpouseRingNode,
 };
 
-function FlowContent({ nodes }: { nodes: Node[] }) {
+function FlowContent({ nodes, onFitted }: { nodes: Node[]; onFitted: () => void }) {
   const { fitView } = useReactFlow();
+  const onFittedRef = useRef(onFitted);
+  
+  // Update ref when callback changes
+  useEffect(() => {
+    onFittedRef.current = onFitted;
+  }, [onFitted]);
 
-  // Автоматически подгоняем вид после загрузки
+  // Automatically fit view after loading
   useEffect(() => {
     if (nodes.length > 0) {
-      setTimeout(() => {
+      const timeoutId = setTimeout(() => {
         fitView({ padding: 0.2, maxZoom: 1.5 });
+        // Notify parent component that fitView is applied
+        onFittedRef.current();
       }, 100);
+      
+      return () => clearTimeout(timeoutId);
     }
   }, [fitView, nodes.length]);
 
@@ -675,16 +690,48 @@ export default function FamilyTree({ data: initialData, className = '', currentU
   const [data, setData] = useState<FamilyTreeData>(initialData);
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
   const [isAddPanelOpen, setIsAddPanelOpen] = useState(false);
-
-  // Синхронизируем с initialData при его изменении
+  const [isEditPanelOpen, setIsEditPanelOpen] = useState(false);
+  const [personToEdit, setPersonToEdit] = useState<Person | null>(null);
+  const [isFitted, setIsFitted] = useState(false);
+  // Track previous data for comparison
+  const prevDataRef = useRef<FamilyTreeData | null>(null);
+  const prevPersonsCountRef = useRef(0);
+  
+  // Sync with initialData when it changes
   useEffect(() => {
+    const personsCount = initialData.persons.length;
+    const prevPersonsCount = prevPersonsCountRef.current;
+    
+    // Always update data, but reset isFitted only when structure changes
     setData(initialData);
+    prevDataRef.current = initialData;
+    
+    // Reset fitView state only when number of persons changes
+    // (this means real change in tree structure)
+    if (personsCount !== prevPersonsCount) {
+      prevPersonsCountRef.current = personsCount;
+      setIsFitted(false);
+    }
   }, [initialData]);
+
+  // Callback to notify when fitView is applied
+  const handleFitted = useCallback(() => {
+    setIsFitted(true);
+  }, []);
 
   const { nodes, edges } = useMemo(
     () => transformToFlowData(data, currentUserEmail, selectedNodeId || undefined),
     [data, currentUserEmail, selectedNodeId]
   );
+
+  // Track tree structure changes (number of nodes) to apply fitView only on real changes
+  const nodesCountRef = useRef(nodes.length);
+  useEffect(() => {
+    if (nodes.length !== nodesCountRef.current) {
+      nodesCountRef.current = nodes.length;
+      setIsFitted(false);
+    }
+  }, [nodes.length]);
 
   const selectedPerson = useMemo(() => {
     if (!selectedNodeId) return null;
@@ -692,43 +739,55 @@ export default function FamilyTree({ data: initialData, className = '', currentU
   }, [selectedNodeId, data.persons]);
 
   const onNodeClick: NodeMouseHandler = useCallback((_, node) => {
-    // Если кликнули на уже выбранный узел - снимаем выделение
+    // If edit panel is open, close it without saving when clicking on another person
+    if (isEditPanelOpen) {
+      // Close edit panel without saving
+      setIsEditPanelOpen(false);
+      setPersonToEdit(null);
+    }
+    
+    // If clicked on already selected node - deselect
     if (selectedNodeId === node.id) {
       setSelectedNodeId(null);
     } else {
       setSelectedNodeId(node.id);
     }
-  }, [selectedNodeId]);
+  }, [selectedNodeId, isEditPanelOpen]);
 
   const onPaneClick = useCallback(() => {
-    // Сбрасываем выделение при клике на пустое пространство
+    // Reset selection when clicking on empty space
     setSelectedNodeId(null);
-  }, []);
+    // Close edit panel if open
+    if (isEditPanelOpen) {
+      setIsEditPanelOpen(false);
+      setPersonToEdit(null);
+    }
+  }, [isEditPanelOpen]);
 
   const handleAddPerson = useCallback((
     personData: Omit<Person, 'id'>,
     relationship?: { type: 'parent' | 'child'; relatedPersonId: string }
   ) => {
-    // Генерируем уникальный ID для новой персоны
+    // Generate unique ID for new person
     const newPersonId = `person-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
     const newPerson: Person = {
       ...personData,
       id: newPersonId,
     };
 
-    // Проверяем и добавляем связь, если она указана
+    // Check and add relationship if specified
     let newRelationship: Relationship | null = null;
     
     if (relationship) {
       const { type, relatedPersonId } = relationship;
       
       if (type === 'child') {
-        // Новый человек является ребенком выбранной персоны
-        // relatedPersonId - это родитель нового человека
-        // Валидация уже выполнена в панели, здесь просто создаем связь
+        // New person is a child of the selected person
+        // relatedPersonId is the parent of the new person
+        // Validation already done in panel, just create relationship here
         const relatedPerson = data.persons.find((p) => p.id === relatedPersonId);
         if (!relatedPerson) {
-          // Если персона не найдена (не должно происходить после валидации), просто не добавляем
+          // If person not found (shouldn't happen after validation), just don't add
           return;
         }
         
@@ -738,17 +797,17 @@ export default function FamilyTree({ data: initialData, className = '', currentU
           childId: newPersonId,
         };
       } else if (type === 'parent') {
-        // Новый человек является родителем выбранной персоны
-        // relatedPersonId - это ребенок нового человека
-        // Валидация уже выполнена в панели, но проверяем еще раз для безопасности
+        // New person is a parent of the selected person
+        // relatedPersonId is the child of the new person
+        // Validation already done in panel, but check again for safety
         if (!canAddParent(relatedPersonId, data.relationships)) {
-          // Если нельзя добавить родителя (не должно происходить после валидации), просто не добавляем
+          // If can't add parent (shouldn't happen after validation), just don't add
           return;
         }
         
-        // Проверяем, не существует ли уже такая связь
+        // Check if such relationship already exists
         if (relationshipExists(newPersonId, relatedPersonId, data.relationships)) {
-          // Если связь уже существует (не должно происходить), просто не добавляем
+          // If relationship already exists (shouldn't happen), just don't add
           return;
         }
         
@@ -760,7 +819,7 @@ export default function FamilyTree({ data: initialData, className = '', currentU
       }
     }
 
-    // Обновляем данные
+    // Update data
     setData((prevData) => {
       const updatedPersons = [...prevData.persons, newPerson];
       const updatedRelationships = newRelationship
@@ -773,44 +832,100 @@ export default function FamilyTree({ data: initialData, className = '', currentU
       };
     });
 
-    // Закрываем панель добавления
+    // Close add panel
     setIsAddPanelOpen(false);
   }, [data.persons, data.relationships]);
+
+  const handleDeletePerson = useCallback((personId: string) => {
+    // Find all ancestors
+    const ancestorIds = findAllAncestorIds(personId, data.relationships);
+    const allIdsToDelete = [personId, ...ancestorIds];
+    const uniqueIdsToDelete = Array.from(new Set(allIdsToDelete));
+
+    // Update data: remove persons and their relationships
+    setData((prevData) => {
+      // Remove persons
+      const updatedPersons = prevData.persons.filter(
+        (p) => !uniqueIdsToDelete.includes(p.id)
+      );
+
+      // Remove relationships where either parent or child is in the deletion list
+      const updatedRelationships = prevData.relationships.filter(
+        (rel) => 
+          !uniqueIdsToDelete.includes(rel.parentId) && 
+          !uniqueIdsToDelete.includes(rel.childId)
+      );
+
+      return {
+        persons: updatedPersons,
+        relationships: updatedRelationships,
+      };
+    });
+
+    // Close panel if deleted person was selected
+    if (selectedNodeId === personId || uniqueIdsToDelete.includes(selectedNodeId || '')) {
+      setSelectedNodeId(null);
+    }
+  }, [data.relationships, selectedNodeId]);
+
+  const handleEditPerson = useCallback((person: Person) => {
+    setPersonToEdit(person);
+    setIsEditPanelOpen(true);
+    // Keep selectedNodeId to maintain selection
+  }, []);
+
+  const handleUpdatePerson = useCallback((personId: string, personData: Omit<Person, 'id'>) => {
+    setData((prevData) => {
+      const updatedPersons = prevData.persons.map((p) =>
+        p.id === personId ? { ...personData, id: personId } : p
+      );
+
+      return {
+        persons: updatedPersons,
+        relationships: prevData.relationships,
+      };
+    });
+
+    setIsEditPanelOpen(false);
+    setPersonToEdit(null);
+  }, []);
 
   const fullName = selectedPerson ? getPersonFullName(selectedPerson) : '';
 
   return (
     <div className={`w-full h-full ${className} relative`}>
       {/* Add Person Button */}
-      {!isAddPanelOpen && !selectedPerson && (
+      {!isAddPanelOpen && !isEditPanelOpen && !selectedPerson && (
         <button
           onClick={() => {
             setIsAddPanelOpen(true);
             setSelectedNodeId(null);
           }}
           className="absolute top-4 right-4 z-50 w-12 h-12 bg-green-400 text-white rounded-full shadow-lg hover:bg-green-500 transition-colors flex items-center justify-center text-4xl font-bold leading-none cursor-pointer"
-          style={{ lineHeight: 1 }}
           aria-label="Add new person"
         >
           <span className="relative -top-1">+</span>
         </button>
       )}
 
-      <div className="w-full h-full">
+      <div className="w-full h-full relative">
       <ReactFlow
         nodes={nodes}
         edges={edges}
         nodeTypes={nodeTypes}
-        fitView
-        fitViewOptions={{ padding: 0.2, maxZoom: 1.5 }}
+        fitView={false}
         nodesDraggable
         nodesConnectable={false}
         elementsSelectable
         defaultViewport={{ x: 0, y: 0, zoom: 1 }}
           onNodeClick={onNodeClick}
           onPaneClick={onPaneClick}
+          style={{
+            opacity: isFitted ? 1 : 0,
+            transition: 'opacity 0.2s ease-in-out',
+          }}
       >
-          <FlowContent nodes={nodes}/>
+          <FlowContent nodes={nodes} onFitted={handleFitted}/>
         <Background />
         <Controls />
         <MiniMap />
@@ -818,23 +933,45 @@ export default function FamilyTree({ data: initialData, className = '', currentU
       </div>
 
       {/* Side Panel - Person Details */}
-      {selectedPerson && !isAddPanelOpen && (
+      {selectedPerson && !isAddPanelOpen && !isEditPanelOpen && (
         <PersonDetailsPanel 
           person={selectedPerson} 
           fullName={fullName}
           onClose={() => setSelectedNodeId(null)}
+          isMainPerson={findMainPersonId(data.persons, data.relationships, currentUserEmail) === selectedPerson.id}
+          onDelete={handleDeletePerson}
+          onEdit={handleEditPerson}
+          persons={data.persons}
+          relationships={data.relationships}
         />
       )}
 
       {/* Side Panel - Add Person */}
-        {isAddPanelOpen && (
-          <AddPersonPanel
-            onClose={() => setIsAddPanelOpen(false)}
-            onSave={handleAddPerson}
-            persons={data.persons}
-            relationships={data.relationships}
-          />
-        )}
+      {isAddPanelOpen && !isEditPanelOpen && (
+        <AddPersonPanel
+          onClose={() => setIsAddPanelOpen(false)}
+          onSave={handleAddPerson}
+          persons={data.persons}
+          relationships={data.relationships}
+          mainPersonId={findMainPersonId(data.persons, data.relationships, currentUserEmail)}
+        />
+      )}
+
+      {/* Side Panel - Edit Person */}
+      {isEditPanelOpen && personToEdit && (
+        <AddPersonPanel
+          onClose={() => {
+            setIsEditPanelOpen(false);
+            setPersonToEdit(null);
+          }}
+          onSave={handleAddPerson}
+          onUpdate={handleUpdatePerson}
+          persons={data.persons}
+          relationships={data.relationships}
+          mainPersonId={findMainPersonId(data.persons, data.relationships, currentUserEmail)}
+          personToEdit={personToEdit}
+        />
+      )}
     </div>
   );
 }

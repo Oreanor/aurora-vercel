@@ -1,12 +1,12 @@
 import { FamilyTreeData, FamilyTree } from '@/types/family';
 
 /**
- * Mock-данные для первого генеалогического дерева
- * Человек с двумя родителями и бабушками-дедушками
+ * Mock data for the first family tree
+ * Person with two parents and grandparents
  */
 const mockFamilyData1: FamilyTreeData = {
   persons: [
-    // Главный человек
+    // Main person
     {
       id: 'person-1',
       firstName: 'John',
@@ -14,9 +14,9 @@ const mockFamilyData1: FamilyTreeData = {
       middleName: '',
       birthDate: '1990-05-15',
       gender: 'male',
-      email: 'oreanor@gmail.com', // Email пользователя для идентификации
+      email: 'oreanor@gmail.com', // User email for identification
     },
-    // Родители
+    // Parents
     {
       id: 'person-2',
       firstName: 'Alex',
@@ -24,7 +24,7 @@ const mockFamilyData1: FamilyTreeData = {
       middleName: '',
       birthDate: '1965-03-20',
       gender: 'male',
-      email: 'alex.smith@example.com', // Пример: email для другого пользователя
+      email: 'alex.smith@example.com', // Example: email for another user
     },
     {
       id: 'person-3',
@@ -34,7 +34,7 @@ const mockFamilyData1: FamilyTreeData = {
       birthDate: '1967-08-10',
       gender: 'female',
     },
-    // Дедушка и бабушка по отцу
+    // Grandfather and grandmother on father's side
     {
       id: 'person-4',
       firstName: 'Peter',
@@ -52,7 +52,7 @@ const mockFamilyData1: FamilyTreeData = {
       birthDate: '1942-06-22',
       gender: 'female',
     },
-    // Дедушка и бабушка по матери
+    // Grandfather and grandmother on mother's side
     {
       id: 'person-6',
       firstName: 'Sergey',
@@ -70,7 +70,7 @@ const mockFamilyData1: FamilyTreeData = {
       birthDate: '1945-04-12',
       gender: 'female',
     },
-    // Прадедушка по отцу (отец Peter)
+    // Great-grandfather on father's side (father of Peter)
     {
       id: 'person-8',
       firstName: 'William',
@@ -80,7 +80,7 @@ const mockFamilyData1: FamilyTreeData = {
       deathDate: '1985-09-10',
       gender: 'male',
     },
-    // Прабабушка по отцу (мать Anna)
+    // Great-grandmother on father's side (mother of Anna)
     {
       id: 'person-9',
       firstName: 'Margaret',
@@ -90,7 +90,7 @@ const mockFamilyData1: FamilyTreeData = {
       deathDate: '1992-07-22',
       gender: 'female',
     },
-    // Прадедушка по матери (отец Sergey)
+    // Great-grandfather on mother's side (father of Sergey)
     {
       id: 'person-10',
       firstName: 'Ivan',
@@ -100,7 +100,7 @@ const mockFamilyData1: FamilyTreeData = {
       deathDate: '1980-04-30',
       gender: 'male',
     },
-    // Прабабушка по матери (мать Elena)
+    // Great-grandmother on mother's side (mother of Elena)
     {
       id: 'person-11',
       firstName: 'Sofia',

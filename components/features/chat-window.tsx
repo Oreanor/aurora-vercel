@@ -25,13 +25,13 @@ export default function ChatWindow({ selectedPerson, role = "", className = "" }
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Сброс сообщений при смене персоны
+  // Reset messages when person changes
   useEffect(() => {
     setMessages([]);
     setInputValue("");
   }, [selectedPerson?.id]);
 
-  // Прокрутка к последнему сообщению
+  // Scroll to last message
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
@@ -46,7 +46,7 @@ export default function ChatWindow({ selectedPerson, role = "", className = "" }
       timestamp: new Date(),
     };
 
-    // Добавляем сообщение пользователя сразу
+    // Add user message immediately
     setMessages((prev) => [...prev, userMessage]);
     setInputValue("");
     setIsLoading(true);
@@ -113,7 +113,7 @@ export default function ChatWindow({ selectedPerson, role = "", className = "" }
   const initial = getPersonInitial(selectedPerson);
   const yearsDisplay = formatPersonYears(selectedPerson);
 
-  // Цвет для аватара
+  // Avatar color
   const getAvatarGradient = () => {
     if (selectedPerson.gender === "female") return "from-pink-400 to-rose-400";
     return "from-blue-400 to-green-400";
@@ -203,8 +203,8 @@ export default function ChatWindow({ selectedPerson, role = "", className = "" }
               <div className="bg-gray-100 rounded-xl rounded-tl-sm px-3 py-2 max-w-sm">
                 <div className="flex space-x-1">
                   <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-                  <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: "0.2s" }}></div>
-                  <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: "0.4s" }}></div>
+                  <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce [animation-delay:0.2s]"></div>
+                  <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce [animation-delay:0.4s]"></div>
                 </div>
               </div>
             </div>

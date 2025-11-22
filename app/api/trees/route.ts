@@ -2,7 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { mockFamilyTrees } from '@/lib/mock-family-data';
 import { FamilyTree } from '@/types/family';
 
-// Временное хранилище для созданных деревьев (в реальности будет база данных)
+// TEMPORARY STORAGE: Data is stored only in server memory
+// All data is lost when the server restarts
+// TODO: Replace with backend/database connection
 declare global {
   var userCreatedTrees: FamilyTree[] | undefined;
 }
@@ -13,8 +15,8 @@ if (!global.userCreatedTrees) {
 
 /**
  * GET /api/trees
- * Возвращает список ID деревьев, доступных текущему пользователю
- * Эмуляция API запроса - в реальности здесь будет запрос к базе данных
+ * Returns a list of tree IDs available to the current user
+ * API request emulation - in production this will query the database
  */
 export async function GET(request: NextRequest) {
   try {
@@ -27,10 +29,10 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Объединяем мок-деревья и созданные пользователем
+    // Combine mock trees and user-created trees
     const allTrees = [...mockFamilyTrees, ...(global.userCreatedTrees || [])];
     
-    // Фильтруем деревья, к которым у пользователя есть доступ
+    // Filter trees that the user has access to
     const accessibleTrees = allTrees
       .filter(tree => {
         const { owner, editor, viewer } = tree.access;
@@ -52,11 +54,11 @@ export async function GET(request: NextRequest) {
         updatedAt: tree.updatedAt,
       }));
 
-    // Эмуляция задержки сети
+    // Simulate network delay
     await new Promise(resolve => setTimeout(resolve, 300));
 
-    // Для эмуляции нового пользователя возвращаем только созданные деревья
-    // Мок-деревья не возвращаем для новых пользователей
+    // For new user emulation, return only created trees
+    // Don't return mock trees for new users
     const userTrees = global.userCreatedTrees || [];
     return NextResponse.json({
       trees: accessibleTrees.filter(tree => 
@@ -77,8 +79,8 @@ export async function GET(request: NextRequest) {
 
 /**
  * POST /api/trees
- * Создает новое дерево для пользователя
- * Эмуляция API запроса
+ * Creates a new tree for the user
+ * API request emulation
  */
 export async function POST(request: NextRequest) {
   try {
@@ -99,7 +101,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Создаем новое дерево
+    // Create a new tree
     const newTree: FamilyTree = {
       id: `tree-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       name: treeData.name || 'My Family Tree',
@@ -113,13 +115,14 @@ export async function POST(request: NextRequest) {
       updatedAt: new Date().toISOString(),
     };
 
-    // Сохраняем в временное хранилище (в реальности будет база данных)
+    // Save to temporary in-memory storage
+    // TODO: Replace with database save through backend
     if (!global.userCreatedTrees) {
       global.userCreatedTrees = [];
     }
     global.userCreatedTrees.push(newTree);
 
-    // Эмуляция задержки сети
+    // Simulate network delay
     await new Promise(resolve => setTimeout(resolve, 300));
 
     return NextResponse.json({

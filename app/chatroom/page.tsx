@@ -7,7 +7,7 @@ import ChatWindow from "@/components/features/chat-window";
 import Select from "@/components/ui/select";
 
 export default function ChatroomPage() {
-  // Находим главного человека
+  // Find main person
   const mainPersonId = useMemo(() => {
     return findMainPersonId(
       mockFamilyData.persons,
@@ -15,7 +15,7 @@ export default function ChatroomPage() {
     );
   }, []);
 
-  // Получаем список родственников (исключая главного человека)
+  // Get list of relatives (excluding main person)
   const familyMembers = useMemo(() => {
     const members = mockFamilyData.persons
       .filter((person) => person.id !== mainPersonId)
@@ -38,7 +38,7 @@ export default function ChatroomPage() {
       ? mockFamilyData.persons.find((p) => p.id === selectedPersonId) || null
       : null;
 
-  // Находим роль выбранной персоны
+  // Find selected person's role
   const selectedPersonRole = useMemo(() => {
     if (!selectedPersonId || !mainPersonId) return "";
     return getPersonRole(

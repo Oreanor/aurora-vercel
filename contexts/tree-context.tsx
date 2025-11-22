@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, ReactNode, useCallback, useMemo, useRef } from 'react';
 import { useSearchParams, usePathname, useRouter } from 'next/navigation';
 import { getTreeById } from '@/lib/api/trees';
 import { FamilyTree, FamilyTreeData } from '@/types/family';
@@ -24,28 +24,40 @@ export function TreeProvider({ children }: { children: ReactNode }) {
   const searchParams = useSearchParams();
   const pathname = usePathname();
   const router = useRouter();
+  // Track last loaded treeId to avoid reloading
+  const lastLoadedTreeIdRef = useRef<string | null>(null);
 
-  // Загружаем данные дерева
-  const loadTreeData = async (treeId: string) => {
+  // Load tree data - memoized with useCallback
+  const loadTreeData = useCallback(async (treeId: string) => {
+    // Skip loading if data is already loaded for this treeId
+    if (lastLoadedTreeIdRef.current === treeId) {
+      return;
+    }
+    
     try {
       setIsLoading(true);
       setError(null);
       const tree = await getTreeById(treeId);
       setTreeData(tree.data);
+      lastLoadedTreeIdRef.current = treeId;
     } catch (err) {
       console.error('Error loading tree data:', err);
       setError(err instanceof Error ? err.message : 'Failed to load tree data');
       setTreeData(null);
+      lastLoadedTreeIdRef.current = null;
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
-  // Обновляем выбранное дерево и синхронизируем с URL
-  const setSelectedTreeId = (treeId: string | null) => {
+  // Update selected tree and sync with URL - memoized with useCallback
+  // Data loading happens through useEffect that watches URL changes
+  const setSelectedTreeId = useCallback((treeId: string | null) => {
+    // Update state immediately for synchronization
     setSelectedTreeIdState(treeId);
     
-    // Обновляем URL параметр без перехода
+    // Update URL parameter without navigation
+    // useEffect will automatically load data when URL changes
     const params = new URLSearchParams(searchParams.toString());
     if (treeId) {
       params.set('treeId', treeId);
@@ -55,49 +67,69 @@ export function TreeProvider({ children }: { children: ReactNode }) {
     const newUrl = params.toString() ? `${pathname}?${params.toString()}` : pathname;
     router.replace(newUrl, { scroll: false });
     
-    // Загружаем данные если treeId указан
-    if (treeId) {
-      loadTreeData(treeId);
-    } else {
+    // If treeId is null, clear data immediately
+    if (!treeId) {
       setTreeData(null);
+      lastLoadedTreeIdRef.current = null;
     }
-  };
+  }, [searchParams, pathname, router]);
 
-  // Функция для обновления данных дерева
-  const refreshTreeData = async () => {
+  // Function to refresh tree data - memoized with useCallback
+  const refreshTreeData = useCallback(async () => {
     if (selectedTreeId) {
+      // Reset ref to force reload data
+      lastLoadedTreeIdRef.current = null;
       await loadTreeData(selectedTreeId);
     }
-  };
+  }, [selectedTreeId, loadTreeData]);
 
-  // Синхронизируем с URL параметром при монтировании и изменении URL
+  // Sync with URL parameter on mount and URL changes
   useEffect(() => {
     const treeIdFromUrl = searchParams.get('treeId');
-    if (treeIdFromUrl && treeIdFromUrl !== selectedTreeId) {
-      // Не вызываем setSelectedTreeId, чтобы избежать цикла, обновляем напрямую
-      setSelectedTreeIdState(treeIdFromUrl);
-      loadTreeData(treeIdFromUrl);
+    
+    if (treeIdFromUrl) {
+      // Update state if different from current
+      if (treeIdFromUrl !== selectedTreeId) {
+        setSelectedTreeIdState(treeIdFromUrl);
+      }
+      // Load data if not already loaded for this treeId
+      if (lastLoadedTreeIdRef.current !== treeIdFromUrl) {
+        loadTreeData(treeIdFromUrl);
+      }
     } else if (!treeIdFromUrl && selectedTreeId && pathname !== '/') {
-      // Если treeId убран из URL и мы не на главной странице, сохраняем treeId в URL
-      // Это нужно для сохранения параметра при навигации
+      // If treeId removed from URL and we're not on home page, save treeId to URL
+      // This is needed to preserve parameter during navigation
       const params = new URLSearchParams();
       params.set('treeId', selectedTreeId);
       router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+    } else if (!treeIdFromUrl && pathname === '/') {
+      // On home page, keep selectedTreeId but don't load data
+      // Don't clear selectedTreeId - it should persist in navbar
+      // Only clear treeData if we're on home page
+      if (treeData) {
+        setTreeData(null);
+        lastLoadedTreeIdRef.current = null;
+      }
+    } else if (!treeIdFromUrl && pathname !== '/') {
+      // If treeId not in URL and not on home page, clear everything
+      setSelectedTreeIdState(null);
+      setTreeData(null);
+      lastLoadedTreeIdRef.current = null;
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchParams, pathname]);
+  }, [searchParams, pathname, selectedTreeId, router, loadTreeData, treeData]);
+
+  // Memoize value object to avoid re-renders of all context consumers
+  const value = useMemo(() => ({
+    selectedTreeId,
+    treeData,
+    isLoading,
+    error,
+    setSelectedTreeId,
+    refreshTreeData,
+  }), [selectedTreeId, treeData, isLoading, error, setSelectedTreeId, refreshTreeData]);
 
   return (
-    <TreeContext.Provider
-      value={{
-        selectedTreeId,
-        treeData,
-        isLoading,
-        error,
-        setSelectedTreeId,
-        refreshTreeData,
-      }}
-    >
+    <TreeContext.Provider value={value}>
       {children}
     </TreeContext.Provider>
   );

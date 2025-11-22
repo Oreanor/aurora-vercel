@@ -12,7 +12,7 @@ export default function SignInPage() {
   const { data: session } = useSession();
   const router = useRouter();
 
-  // Редирект если пользователь уже авторизован
+  // Redirect if user is already authenticated
   useEffect(() => {
     if (session) {
       router.push('/');

@@ -31,16 +31,16 @@ const handler = NextAuth({
   session: { strategy: "jwt" },
   secret: process.env.AUTH_SECRET,
   callbacks: {
-    // Этот колбэк срабатывает при логине
+    // This callback fires on login
     async signIn({ user, account }) {
       if (account?.provider === "google" && user.email) {
-        // Проверяем, есть ли уже юзер с таким email (от любого провайдера)
+        // Check if user with this email already exists (from any provider)
         const existingUser = await prisma.user.findUnique({
           where: { email: user.email },
         });
 
         if (existingUser) {
-          // Если есть, обновляем аккаунт для Google провайдера
+          // If exists, update account for Google provider
           await prisma.account.upsert({
             where: {
               provider_providerAccountId: {
@@ -66,14 +66,14 @@ const handler = NextAuth({
             },
           });
           
-          // Подменяем id текущего юзера
+          // Replace current user id
           user.id = existingUser.id;
         }
       }
       return true;
     },
 
-    // В JWT храним единый id для Email и Google
+    // Store unified id in JWT for Email and Google
     async jwt({ token, user }) {
       if (user) token.id = user.id;
       return token;

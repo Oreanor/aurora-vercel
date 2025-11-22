@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import FamilyTree from '@/components/features/family-tree';
@@ -10,7 +10,8 @@ export default function TreePage() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const { selectedTreeId, treeData, isLoading, error } = useTree();
-  const currentUserEmail = session?.user?.email || undefined;
+  // Memoize email to avoid unnecessary re-renders of FamilyTree
+  const currentUserEmail = useMemo(() => session?.user?.email || undefined, [session?.user?.email]);
 
   useEffect(() => {
     if (status === 'loading') return;
@@ -18,7 +19,7 @@ export default function TreePage() {
     if (!session?.user?.email) {
       router.push('/signin');
     }
-  }, [session, status, router]);
+  }, [session?.user?.email, status, router]);
 
   if (status === 'loading' || isLoading) {
     return (
@@ -29,7 +30,7 @@ export default function TreePage() {
   }
 
   if (!session) {
-    return null; // Редирект обрабатывается в useEffect
+    return null; // Redirect is handled in useEffect
   }
 
   if (error && !treeData) {
@@ -50,7 +51,7 @@ export default function TreePage() {
 
   return (
     <div className="h-full bg-gray-50 flex flex-col overflow-hidden">
-      {/* Дерево */}
+      {/* Tree */}
       {treeData && (
         <div className="flex-1 w-full min-h-0 overflow-hidden">
           <FamilyTree 

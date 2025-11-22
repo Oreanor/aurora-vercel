@@ -1,136 +1,229 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useImperativeHandle } from 'react';
 import { Person, Gender, IQualities, Relationship } from '@/types/family';
 import Button from '@/components/ui/button';
 import Input from '@/components/ui/input';
 import Select from '@/components/ui/select';
 import PersonAutocomplete from '@/components/ui/person-autocomplete';
+import { formatDateForInput, validateParentRelationship, validateChildRelationship, hasUnsavedPersonChanges } from '@/lib/utils';
+
+export interface AddPersonPanelRef {
+  hasUnsavedChanges: () => boolean;
+}
 
 interface AddPersonPanelProps {
   onClose: () => void;
   onSave: (person: Omit<Person, 'id'>, relationship?: { type: 'parent' | 'child'; relatedPersonId: string }) => void;
-  persons?: Person[]; // Список всех персон в дереве для выбора связи
-  relationships?: Relationship[]; // Список всех связей для валидации
+  persons?: Person[]; // List of all persons in tree for relationship selection
+  relationships?: Relationship[]; // List of all relationships for validation
+  mainPersonId?: string; // ID of the main person (root) - children cannot be added to root
+  personToEdit?: Person; // Person to edit (if provided, panel works in edit mode)
+  onUpdate?: (personId: string, person: Omit<Person, 'id'>) => void; // Callback for update (edit mode)
 }
 
-export default function AddPersonPanel({ onClose, onSave, persons = [], relationships = [] }: AddPersonPanelProps) {
-  const [formData, setFormData] = useState<Omit<Person, 'id'>>({
-    firstName: '',
-    lastName: '',
-    middleName: '',
-    birthDate: '',
-    deathDate: '',
-    gender: undefined,
-    photo: '',
-    qualities: undefined,
+const AddPersonPanel = React.forwardRef<AddPersonPanelRef, AddPersonPanelProps>(({ 
+  onClose, 
+  onSave, 
+  persons = [], 
+  relationships = [], 
+  mainPersonId,
+  personToEdit,
+  onUpdate
+}, ref) => {
+  const isEditMode = !!personToEdit;
+  
+  const [formData, setFormData] = useState<Omit<Person, 'id'>>(() => {
+    if (personToEdit) {
+      return {
+        firstName: personToEdit.firstName || '',
+        lastName: personToEdit.lastName || '',
+        middleName: personToEdit.middleName || '',
+        birthDate: personToEdit.birthDate ? (typeof personToEdit.birthDate === 'string' ? personToEdit.birthDate : new Date(personToEdit.birthDate).toISOString().split('T')[0]) : '',
+        deathDate: personToEdit.deathDate ? (typeof personToEdit.deathDate === 'string' ? personToEdit.deathDate : new Date(personToEdit.deathDate).toISOString().split('T')[0]) : '',
+        gender: personToEdit.gender,
+        photo: personToEdit.photo || '',
+        qualities: personToEdit.qualities,
+      };
+    }
+    return {
+      firstName: '',
+      lastName: '',
+      middleName: '',
+      birthDate: '',
+      deathDate: '',
+      gender: undefined,
+      photo: '',
+      qualities: undefined,
+    };
   });
 
-  // Состояние для связи
-  const [relationshipType, setRelationshipType] = useState<'parent' | 'child' | ''>('');
+  // State for relationship (only for add mode, not edit mode)
+  const [relationshipType] = useState<'parent' | 'child' | ''>(persons.length > 0 && !isEditMode ? 'parent' : '');
+  const [parentGender, setParentGender] = useState<'male' | 'female' | ''>(() => {
+    if (isEditMode && personToEdit?.gender) {
+      return personToEdit.gender === 'male' ? 'male' : personToEdit.gender === 'female' ? 'female' : '';
+    }
+    return '';
+  });
   const [relatedPersonId, setRelatedPersonId] = useState<string>('');
   const [relationshipError, setRelationshipError] = useState<string>('');
 
-  const [showQualities, setShowQualities] = useState(false);
-  const [qualities, setQualities] = useState<IQualities>({
-    openness: 0,
-    conscientiousness: 0,
-    extraversion: 0,
-    agreeableness: 0,
-    neuroticism: 0,
-    formality: 0,
-    religion: '',
-    religionScale: 0,
-    passions: '',
-    senseOfHumor: '',
-    positivity: 0,
-  });
-
-  const validateRelationship = useCallback(() => {
-    if (!relationshipType || !relatedPersonId) {
-      setRelationshipError('');
+  const [showQualities, setShowQualities] = useState(() => {
+    if (personToEdit?.qualities) {
       return true;
     }
+    return false;
+  });
+  const [qualities, setQualities] = useState<IQualities>(() => {
+    if (personToEdit?.qualities) {
+      return personToEdit.qualities;
+    }
+    return {
+      openness: 0,
+      conscientiousness: 0,
+      extraversion: 0,
+      agreeableness: 0,
+      neuroticism: 0,
+      formality: 0,
+      religion: '',
+      religionScale: 0,
+      passions: '',
+      senseOfHumor: '',
+      positivity: 0,
+    };
+  });
 
-    if (relationshipType === 'parent') {
-      // Новый человек является родителем выбранной персоны
-      // relatedPersonId - это ребенок нового человека
-      // Проверяем, можно ли добавить родителя для выбранной персоны (не более 2 родителей и разного пола)
-      
-      // Проверяем количество существующих родителей для этой персоны
-      // relatedPersonId - это ID ребенка, для которого мы хотим добавить родителя
-      // Ищем все связи, где relatedPersonId является ребенком (childId)
-      if (!relationships || relationships.length === 0) {
-        // Если массив связей пуст, можно добавить родителя
+  // Check if there are unsaved changes
+  const hasUnsavedChanges = useCallback(() => {
+    if (isEditMode && personToEdit) {
+      return hasUnsavedPersonChanges(formData, personToEdit, parentGender, qualities, showQualities);
+    }
+    return false;
+  }, [isEditMode, personToEdit, formData, parentGender, qualities, showQualities]);
+
+  // Expose hasUnsavedChanges function to parent via ref
+  useImperativeHandle(ref, () => ({
+    hasUnsavedChanges
+  }), [hasUnsavedChanges]);
+
+  const validateRelationship = useCallback(() => {
+    // Relationship is required if there are existing persons in the tree
+    if (persons.length > 0) {
+      if (!relationshipType || !relatedPersonId) {
+        setRelationshipError('Please select a relationship and related person');
+        return false;
+      }
+    } else {
+      // If tree is empty, relationship is optional (for first person)
+      if (!relationshipType || !relatedPersonId) {
         setRelationshipError('');
         return true;
       }
+    }
+
+    // Parent gender is required for relationship validation
+    if (!parentGender) {
+      setRelationshipError('');
+      return true; // Parent gender validation will be handled separately
+    }
+
+    if (relationshipType === 'parent') {
+      // New person is a parent of the selected person
+      // relatedPersonId is the child of the new person
+      // Check if we can add a parent for the selected person (max 2 parents of different genders)
       
-      // Ищем все связи, где relatedPersonId является ребенком
-      const existingParentRelations = relationships.filter((rel) => rel.childId === relatedPersonId);
+      const validation = validateParentRelationship(
+        relatedPersonId,
+        parentGender as 'male' | 'female',
+        persons,
+        relationships || []
+      );
       
-      // Проверяем, что у ребенка меньше 2 родителей
-      if (existingParentRelations.length >= 2) {
-        setRelationshipError(`This person already has ${existingParentRelations.length} parent(s). Cannot add more parents.`);
+      if (!validation.isValid) {
+        setRelationshipError(validation.error || '');
         return false;
-      }
-      
-      // Проверяем, что новый родитель не того же пола, что и существующий
-      if (existingParentRelations.length > 0 && formData.gender) {
-        // Находим существующих родителей
-        const existingParentIds = existingParentRelations.map((rel) => rel.parentId);
-        const existingParents = persons.filter((p) => existingParentIds.includes(p.id));
-        
-        // Проверяем, есть ли уже родитель такого же пола
-        const hasSameGenderParent = existingParents.some((parent) => parent.gender === formData.gender);
-        
-        if (hasSameGenderParent) {
-          const genderLabel = formData.gender === 'male' ? 'father' : formData.gender === 'female' ? 'mother' : 'parent';
-          setRelationshipError(`This person already has a ${genderLabel}. Cannot add another ${genderLabel} of the same gender.`);
-          return false;
-        }
       }
       
       setRelationshipError('');
       return true;
     } else if (relationshipType === 'child') {
-      // Новый человек является ребенком выбранной персоны
-      // relatedPersonId - это родитель нового человека
-      // Проверяем, не существует ли уже такая связь
-      // Для нового человека это невозможно, но проверяем на всякий случай
+      // New person is a child of the selected person
+      // relatedPersonId is the parent of the new person
+      
+      const validation = validateChildRelationship(relatedPersonId, mainPersonId, persons);
+      
+      if (!validation.isValid) {
+        setRelationshipError(validation.error || '');
+        return false;
+      }
+      
+      // Multiple children of the same gender are allowed, so no duplicate check needed
       setRelationshipError('');
       return true;
     }
 
     setRelationshipError('');
     return true;
-  }, [relationshipType, relatedPersonId, relationships, formData.gender, persons]);
+  }, [relationshipType, relatedPersonId, relationships, parentGender, persons, mainPersonId]);
 
-  // Валидация связи при изменении
+  // Validate relationship on change
   useEffect(() => {
-    if (relationshipType && relatedPersonId) {
-      validateRelationship();
-    } else {
-      setRelationshipError('');
-    }
-  }, [relationshipType, relatedPersonId, validateRelationship]);
+    validateRelationship();
+  }, [validateRelationship]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Валидируем связь перед отправкой
-    if (relationshipType && relatedPersonId) {
-      if (!validateRelationship()) {
-        return; // Не отправляем форму, если есть ошибка
+    if (isEditMode) {
+      // Edit mode: just update the person
+      if (!personToEdit) return;
+      
+      const personData: Omit<Person, 'id'> = {
+        ...formData,
+        gender: parentGender || formData.gender,
+        qualities: showQualities ? qualities : undefined,
+      };
+      
+      if (onUpdate) {
+        onUpdate(personToEdit.id, personData);
+      }
+      onClose();
+      return;
+    }
+    
+    // Add mode: validate relationship
+    // Validate parent gender if relationship is required
+    if (persons.length > 0) {
+      if (!parentGender) {
+        setRelationshipError('Please select whether this person is a father or mother');
+        return;
+      }
+      if (!relatedPersonId) {
+        setRelationshipError('Please select a person');
+        return;
       }
     }
     
+    // Validate relationship before submission
+    if (!validateRelationship()) {
+      return; // Don't submit form if there's an error
+    }
+    
+    // Relationship is required if there are existing persons
+    if (persons.length > 0 && (!relationshipType || !relatedPersonId)) {
+      setRelationshipError('Please select a relationship and related person');
+      return;
+    }
+    
+    // Set gender automatically based on parent gender selection
     const personData: Omit<Person, 'id'> = {
       ...formData,
+      gender: parentGender || formData.gender,
       qualities: showQualities ? qualities : undefined,
     };
     
-    // Передаем информацию о связи, если она указана
+    // Pass relationship information if specified
     const relationship = relationshipType && relatedPersonId
       ? { type: relationshipType as 'parent' | 'child', relatedPersonId }
       : undefined;
@@ -147,22 +240,13 @@ export default function AddPersonPanel({ onClose, onSave, persons = [], relation
     setQualities((prev) => ({ ...prev, [field]: value }));
   };
 
-  // Helper function to convert date to string for input
-  const formatDateForInput = (date: Date | string | undefined): string => {
-    if (!date) return '';
-    if (typeof date === 'string') return date;
-    // If it's a Date object, format as YYYY-MM-DD
-    const d = new Date(date);
-    const year = d.getFullYear();
-    const month = String(d.getMonth() + 1).padStart(2, '0');
-    const day = String(d.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
-  };
-
   return (
-    <div className="absolute right-0 top-0 h-full w-[min(50%,500px)] bg-white border-l border-gray-200 shadow-lg z-40 flex flex-col">
+    <div 
+      className="absolute right-0 top-0 h-full w-[min(50%,500px)] bg-white border-l border-gray-200 shadow-lg z-40 flex flex-col"
+      onClick={(e) => e.stopPropagation()}
+    >
       <div className="flex-shrink-0 p-6 border-b border-gray-200 flex items-center justify-between">
-        <h2 className="text-2xl font-bold text-gray-900">Add New Person</h2>
+        <h2 className="text-2xl font-bold text-gray-900">{isEditMode ? 'Edit Person' : 'Add New Person'}</h2>
         <button
           onClick={onClose}
           className="text-gray-400 hover:text-gray-600 text-2xl font-bold cursor-pointer"
@@ -174,35 +258,40 @@ export default function AddPersonPanel({ onClose, onSave, persons = [], relation
 
       <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-6">
         <div className="space-y-6">
-          {/* Relationship Section */}
-          {persons.length > 0 && (
+          {/* Relationship Section - only show in add mode */}
+          {persons.length > 0 && !isEditMode && (
             <div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-3">Relationship</h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-3">Relationship *</h3>
               <div className="space-y-4">
-                <Select
-                  label="Relationship Type"
-                  value={relationshipType}
-                  onChange={(e) => setRelationshipType(e.target.value as 'parent' | 'child' | '')}
-                  options={[
-                    { value: '', label: 'No relationship' },
-                    { value: 'child', label: 'Is son/daughter of...' },
-                    { value: 'parent', label: 'Is father/mother of...' },
-                  ]}
-                />
-
-                {relationshipType && (
-                  <div>
-                    <PersonAutocomplete
-                      label={relationshipType === 'child' ? 'Parent' : 'Child'}
-                      persons={persons}
-                      value={relatedPersonId}
-                      onChange={setRelatedPersonId}
-                      placeholder="Search for a person..."
-                    />
-                    {relationshipError && (
-                      <p className="mt-2 text-sm text-red-600">{relationshipError}</p>
-                    )}
-                  </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <Select
+                    label="Is *"
+                    value={parentGender}
+                    onChange={(e) => {
+                      const gender = e.target.value as 'male' | 'female' | '';
+                      setParentGender(gender);
+                      // Auto-set gender in formData
+                      handleChange('gender', gender || undefined);
+                      if (relationshipError) setRelationshipError('');
+                    }}
+                    required
+                    options={[
+                      { value: '', label: 'Select...' },
+                      { value: 'male', label: 'Father' },
+                      { value: 'female', label: 'Mother' },
+                    ]}
+                  />
+                  <PersonAutocomplete
+                    label={'Of *'}
+                    persons={persons}
+                    value={relatedPersonId}
+                    onChange={setRelatedPersonId}
+                    placeholder={parentGender ? "Search for a person..." : "Select Father/Mother first"}
+                    required
+                  />
+                </div>
+                {relationshipError && (
+                  <p className="mt-2 text-sm text-red-600">{relationshipError}</p>
                 )}
               </div>
             </div>
@@ -212,21 +301,23 @@ export default function AddPersonPanel({ onClose, onSave, persons = [], relation
           <div>
             <h3 className="text-lg font-semibold text-gray-900 mb-3">Basic Information</h3>
             <div className="space-y-4">
-              <Input
-                label="First Name *"
-                type="text"
-                required
-                value={formData.firstName}
-                onChange={(e) => handleChange('firstName', e.target.value)}
-              />
-
-              <Input
-                label="Last Name *"
-                type="text"
-                required
-                value={formData.lastName}
-                onChange={(e) => handleChange('lastName', e.target.value)}
-              />
+              {/* First Name and Last Name in one row */}
+              <div className="grid grid-cols-2 gap-4">
+                <Input
+                  label="First Name *"
+                  type="text"
+                  required
+                  value={formData.firstName}
+                  onChange={(e) => handleChange('firstName', e.target.value)}
+                />
+                <Input
+                  label="Last Name *"
+                  type="text"
+                  required
+                  value={formData.lastName}
+                  onChange={(e) => handleChange('lastName', e.target.value)}
+                />
+              </div>
 
               <Input
                 label="Middle Name"
@@ -235,31 +326,21 @@ export default function AddPersonPanel({ onClose, onSave, persons = [], relation
                 onChange={(e) => handleChange('middleName', e.target.value)}
               />
 
-              <Select
-                label="Gender"
-                value={formData.gender || ''}
-                onChange={(e) => handleChange('gender', e.target.value as Gender | undefined || undefined)}
-                options={[
-                  { value: '', label: 'Select gender' },
-                  { value: 'male', label: 'Male' },
-                  { value: 'female', label: 'Female' },
-                  { value: 'other', label: 'Other' },
-                ]}
-              />
-
-              <Input
-                label="Date of Birth"
-                type="date"
-                value={formatDateForInput(formData.birthDate)}
-                onChange={(e) => handleChange('birthDate', e.target.value)}
-              />
-
-              <Input
-                label="Date of Death"
-                type="date"
-                value={formatDateForInput(formData.deathDate)}
-                onChange={(e) => handleChange('deathDate', e.target.value)}
-              />
+              {/* Date of Birth and Date of Death in one row */}
+              <div className="grid grid-cols-2 gap-4">
+                <Input
+                  label="Date of Birth"
+                  type="date"
+                  value={formatDateForInput(formData.birthDate)}
+                  onChange={(e) => handleChange('birthDate', e.target.value)}
+                />
+                <Input
+                  label="Date of Death"
+                  type="date"
+                  value={formatDateForInput(formData.deathDate)}
+                  onChange={(e) => handleChange('deathDate', e.target.value)}
+                />
+              </div>
 
               <Input
                 label="Photo URL"
@@ -399,12 +480,16 @@ export default function AddPersonPanel({ onClose, onSave, persons = [], relation
               variant="primary"
               className="flex-1"
             >
-              Add Person
+              {isEditMode ? 'Save Changes' : 'Add Person'}
             </Button>
           </div>
         </div>
       </form>
     </div>
   );
-}
+});
+
+AddPersonPanel.displayName = 'AddPersonPanel';
+
+export default AddPersonPanel;
 

@@ -9,7 +9,7 @@ const config: Config = {
   theme: {
     extend: {
       spacing: {
-        '15': '60px', // 60px для высоты навбара
+        '15': '60px', // 60px for navbar height
       },
     },
   },
