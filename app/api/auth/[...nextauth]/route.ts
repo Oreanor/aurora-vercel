@@ -71,11 +71,28 @@ if (hasEmailConfig) {
   console.warn('EmailProvider not configured: Missing required environment variables');
 }
 
+// Ensure NEXTAUTH_URL is set for email magic links
+// NextAuth requires this to construct callback URLs
+if (!process.env.NEXTAUTH_URL && !process.env.AUTH_URL) {
+  // Try to set from VERCEL_URL (auto-set by Vercel)
+  if (process.env.VERCEL_URL) {
+    process.env.NEXTAUTH_URL = `https://${process.env.VERCEL_URL}`;
+  } else if (process.env.NODE_ENV === 'production') {
+    // Fallback for production
+    process.env.NEXTAUTH_URL = 'https://aurora-vercel-black.vercel.app';
+  } else {
+    // Local development
+    process.env.NEXTAUTH_URL = 'http://localhost:3000';
+  }
+}
+
 const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
   providers,
   session: { strategy: "jwt" },
   secret: process.env.AUTH_SECRET,
+  // Ensure NEXTAUTH_URL is available for email magic links
+  ...(process.env.NEXTAUTH_URL && { url: process.env.NEXTAUTH_URL }),
   callbacks: {
     // This callback fires on login
     async signIn({ user, account }) {
