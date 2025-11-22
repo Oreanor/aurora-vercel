@@ -22,14 +22,32 @@ if (
   process.env.EMAIL_SERVER_PORT &&
   process.env.EMAIL_FROM
 ) {
+  const emailPort = Number(process.env.EMAIL_SERVER_PORT);
+  
+  // Vercel has restrictions on SMTP ports - use standard ports
+  // Port 587 (TLS) or 465 (SSL) are recommended
+  if (emailPort !== 587 && emailPort !== 465 && emailPort !== 25) {
+    console.warn(`Warning: Non-standard SMTP port ${emailPort} may not work on Vercel. Use 587 (TLS) or 465 (SSL).`);
+  }
+  
   providers.push(
     EmailProvider({
       server: {
         host: process.env.EMAIL_SERVER_HOST,
-        port: Number(process.env.EMAIL_SERVER_PORT),
+        port: emailPort,
+        // Use secure connection for port 465 (SSL), TLS for 587
+        secure: emailPort === 465,
         auth: {
           user: process.env.EMAIL_SERVER_USER,
           pass: process.env.EMAIL_SERVER_PASSWORD,
+        },
+        // Add timeout settings for Vercel serverless functions (max 10s execution time limit)
+        connectionTimeout: 8000, // 8 seconds (leave buffer for Vercel's 10s limit)
+        greetingTimeout: 5000,
+        socketTimeout: 8000,
+        // Disable strict certificate validation (can cause issues on Vercel)
+        tls: {
+          rejectUnauthorized: false,
         },
       },
       from: process.env.EMAIL_FROM,
