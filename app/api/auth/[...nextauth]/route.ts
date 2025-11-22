@@ -142,7 +142,10 @@ const authOptions: NextAuthOptions = {
 const handler = NextAuth(authOptions);
 
 // Wrap handlers with error handling
-const GET = async (req: Request, context: any) => {
+const GET = async (
+  req: Request,
+  context: { params: Promise<{ nextauth: string[] }> }
+) => {
   try {
     return await handler(req, context);
   } catch (error) {
@@ -160,7 +163,10 @@ const GET = async (req: Request, context: any) => {
   }
 };
 
-const POST = async (req: Request, context: any) => {
+const POST = async (
+  req: Request,
+  context: { params: Promise<{ nextauth: string[] }> }
+) => {
   try {
     return await handler(req, context);
   } catch (error) {
