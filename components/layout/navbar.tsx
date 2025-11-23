@@ -145,16 +145,8 @@ export default function Navbar({ className = "" }: Props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session?.user?.email, status, searchParams, pathname]);
 
-  // Show popup if no trees (separate effect to avoid re-running tree loading)
-  useEffect(() => {
-    if (availableTrees.length === 0 && pathname !== '/' && session && status === 'authenticated') {
-      // Small delay for smooth appearance
-      const timeoutId = setTimeout(() => {
-        setShowNoTreesModal(true);
-      }, 500);
-      return () => clearTimeout(timeoutId);
-    }
-  }, [availableTrees.length, pathname, session, status]);
+  // Don't show popup for creating trees automatically
+  // Removed: automatic modal prompting to create tree
 
   // Handler for tree change
   const handleTreeChange = (treeId: string) => {
@@ -361,7 +353,7 @@ export default function Navbar({ className = "" }: Props) {
                 <div className="relative" ref={userMenuRef}>
                   <button
                     onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                    className="flex items-center justify-center w-8 h-8 rounded-full hover:bg-gray-100 transition-colors"
+                    className="flex items-center justify-center w-8 h-8 rounded-full hover:bg-gray-100 transition-colors cursor-pointer"
                     aria-label="User menu"
                   >
                     <UserCircle className="h-6 w-6 text-gray-700" />
@@ -381,7 +373,7 @@ export default function Navbar({ className = "" }: Props) {
                           signOut();
                           setIsUserMenuOpen(false);
                         }}
-                        className="w-full flex items-center space-x-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                        className="w-full flex items-center space-x-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors cursor-pointer"
                       >
                         <LogOut className="h-4 w-4" />
                         <span>Log Out</span>
@@ -486,7 +478,7 @@ export default function Navbar({ className = "" }: Props) {
                         signOut();
                         setIsMobileMenuOpen(false);
                       }}
-                      className="w-full flex items-center space-x-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                      className="w-full flex items-center space-x-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors cursor-pointer"
                     >
                       <LogOut className="h-4 w-4" />
                       <span>Log Out</span>

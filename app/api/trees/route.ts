@@ -57,16 +57,10 @@ export async function GET(request: NextRequest) {
     // Simulate network delay
     await new Promise(resolve => setTimeout(resolve, 300));
 
-    // For new user emulation, return only created trees
-    // Don't return mock trees for new users
-    const userTrees = global.userCreatedTrees || [];
+    // Return all accessible trees (including mock trees)
     return NextResponse.json({
-      trees: accessibleTrees.filter(tree => 
-        userTrees.some(ut => ut.id === tree.id)
-      ),
-      count: accessibleTrees.filter(tree => 
-        userTrees.some(ut => ut.id === tree.id)
-      ).length,
+      trees: accessibleTrees,
+      count: accessibleTrees.length,
     });
   } catch (error) {
     console.error('Error fetching trees:', error);

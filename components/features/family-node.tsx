@@ -13,6 +13,7 @@ interface FamilyNodeData {
   mainPersonId?: string;
   persons?: Person[];
   isSelected?: boolean; // Whether node is selected
+  showDescendants?: boolean; // If true, descendants mode (root at top, no trunk)
 }
 
 interface FamilyNodeProps {
@@ -21,7 +22,7 @@ interface FamilyNodeProps {
 }
 
 export default function FamilyNode({ data, isConnectable = false }: FamilyNodeProps) {
-  const { person, isMainPerson = false, relationships = [], mainPersonId = '', persons = [], isSelected = false } = data;
+  const { person, isMainPerson = false, relationships = [], mainPersonId = '', persons = [], isSelected = false, showDescendants = false } = data;
 
   const fullName = getPersonFullName(person);
 
@@ -140,8 +141,8 @@ export default function FamilyNode({ data, isConnectable = false }: FamilyNodePr
         className="w-2 h-2 absolute top-[150px] left-1/2 -translate-x-1/2"
       />
 
-      {/* Tree trunk for main person - right below text block */}
-      {isMainPerson && (
+      {/* Tree trunk for main person - only in ancestors mode */}
+      {isMainPerson && !showDescendants && (
         <div className="absolute top-[0px] left-1/2 -translate-x-1/2 z-[1]">
           <Image
             src="/tree/trunk.svg"

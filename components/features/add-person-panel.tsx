@@ -59,7 +59,13 @@ const AddPersonPanel = React.forwardRef<AddPersonPanelRef, AddPersonPanelProps>(
   });
 
   // State for relationship (only for add mode, not edit mode)
-  const [relationshipType] = useState<'parent' | 'child' | ''>(persons.length > 0 && !isEditMode ? 'parent' : '');
+  const [relationshipType, setRelationshipType] = useState<'parent' | 'child' | ''>(persons.length > 0 && !isEditMode ? 'parent' : '');
+  const [relationshipRole, setRelationshipRole] = useState<'father' | 'mother' | 'son' | 'daughter' | ''>(() => {
+    if (isEditMode && personToEdit?.gender) {
+      return personToEdit.gender === 'male' ? 'father' : personToEdit.gender === 'female' ? 'mother' : '';
+    }
+    return '';
+  });
   const [parentGender, setParentGender] = useState<'male' | 'female' | ''>(() => {
     if (isEditMode && personToEdit?.gender) {
       return personToEdit.gender === 'male' ? 'male' : personToEdit.gender === 'female' ? 'female' : '';
@@ -97,6 +103,7 @@ const AddPersonPanel = React.forwardRef<AddPersonPanelRef, AddPersonPanelProps>(
   // Check if there are unsaved changes
   const hasUnsavedChanges = useCallback(() => {
     if (isEditMode && personToEdit) {
+      // For edit mode, use parentGender (which is derived from relationshipRole or personToEdit.gender)
       return hasUnsavedPersonChanges(formData, personToEdit, parentGender, qualities, showQualities);
     }
     return false;
@@ -122,10 +129,10 @@ const AddPersonPanel = React.forwardRef<AddPersonPanelRef, AddPersonPanelProps>(
       }
     }
 
-    // Parent gender is required for relationship validation
-    if (!parentGender) {
+    // Relationship role and gender are required for relationship validation
+    if (!relationshipRole || !parentGender) {
       setRelationshipError('');
-      return true; // Parent gender validation will be handled separately
+      return true; // Relationship role validation will be handled separately
     }
 
     if (relationshipType === 'parent') {
@@ -165,7 +172,7 @@ const AddPersonPanel = React.forwardRef<AddPersonPanelRef, AddPersonPanelProps>(
 
     setRelationshipError('');
     return true;
-  }, [relationshipType, relatedPersonId, relationships, parentGender, persons, mainPersonId]);
+  }, [relationshipType, relatedPersonId, relationships, parentGender, relationshipRole, persons, mainPersonId]);
 
   // Validate relationship on change
   useEffect(() => {
@@ -193,10 +200,10 @@ const AddPersonPanel = React.forwardRef<AddPersonPanelRef, AddPersonPanelProps>(
     }
     
     // Add mode: validate relationship
-    // Validate parent gender if relationship is required
+    // Validate relationship type and gender if relationship is required
     if (persons.length > 0) {
-      if (!parentGender) {
-        setRelationshipError('Please select whether this person is a father or mother');
+      if (!parentGender || !relationshipType) {
+        setRelationshipError('Please select a relationship type (Father, Mother, Son, or Daughter)');
         return;
       }
       if (!relatedPersonId) {
@@ -266,10 +273,29 @@ const AddPersonPanel = React.forwardRef<AddPersonPanelRef, AddPersonPanelProps>(
                 <div className="grid grid-cols-2 gap-4">
                   <Select
                     label="Is *"
-                    value={parentGender}
+                    value={relationshipRole}
                     onChange={(e) => {
-                      const gender = e.target.value as 'male' | 'female' | '';
+                      const value = e.target.value as 'father' | 'mother' | 'son' | 'daughter' | '';
+                      let gender: 'male' | 'female' | '' = '';
+                      let relType: 'parent' | 'child' | '' = '';
+                      
+                      if (value === 'father') {
+                        gender = 'male';
+                        relType = 'parent';
+                      } else if (value === 'mother') {
+                        gender = 'female';
+                        relType = 'parent';
+                      } else if (value === 'son') {
+                        gender = 'male';
+                        relType = 'child';
+                      } else if (value === 'daughter') {
+                        gender = 'female';
+                        relType = 'child';
+                      }
+                      
+                      setRelationshipRole(value);
                       setParentGender(gender);
+                      setRelationshipType(relType);
                       // Auto-set gender in formData
                       handleChange('gender', gender || undefined);
                       if (relationshipError) setRelationshipError('');
@@ -277,8 +303,10 @@ const AddPersonPanel = React.forwardRef<AddPersonPanelRef, AddPersonPanelProps>(
                     required
                     options={[
                       { value: '', label: 'Select...' },
-                      { value: 'male', label: 'Father' },
-                      { value: 'female', label: 'Mother' },
+                      { value: 'father', label: 'Father' },
+                      { value: 'mother', label: 'Mother' },
+                      { value: 'son', label: 'Son' },
+                      { value: 'daughter', label: 'Daughter' },
                     ]}
                   />
                   <PersonAutocomplete
@@ -286,7 +314,7 @@ const AddPersonPanel = React.forwardRef<AddPersonPanelRef, AddPersonPanelProps>(
                     persons={persons}
                     value={relatedPersonId}
                     onChange={setRelatedPersonId}
-                    placeholder={parentGender ? "Search for a person..." : "Select Father/Mother first"}
+                    placeholder={relationshipRole ? "Search for a person..." : "Select relationship first"}
                     required
                   />
                 </div>

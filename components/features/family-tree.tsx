@@ -13,12 +13,14 @@ import {
   NodeMouseHandler,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
+import { Network, UserStar, X } from 'lucide-react';
 import { FamilyTreeData, Person, Relationship } from '@/types/family';
 import { findMainPersonId, getPersonFullName, canAddParent, relationshipExists, findAllAncestorIds } from '@/lib/utils';
 import FamilyNode from './family-node';
 import SpouseRingNode from './spouse-ring-node';
 import PersonDetailsPanel from './person-details-panel';
 import AddPersonPanel from './add-person-panel';
+import Button from '@/components/ui/button';
 
 interface Props {
   data: FamilyTreeData;
@@ -31,224 +33,172 @@ interface Props {
  * @param data - family tree data
  * @param currentUserEmail - current user's email (optional). If provided, the tree will be displayed relative to this user
  * @param selectedNodeId - ID of the selected node (optional)
+ * @param rootPersonId - ID of the root person (optional). If provided, this person will be the root, overriding email-based selection
+ * @param showDescendants - if true, show descendants (root at top), if false, show ancestors (root at bottom)
  */
-function transformToFlowData(data: FamilyTreeData, currentUserEmail?: string, selectedNodeId?: string) {
+function transformToFlowData(data: FamilyTreeData, currentUserEmail?: string, selectedNodeId?: string, rootPersonId?: string, showDescendants: boolean = false) {
   const nodes: Node[] = [];
   const edges: Edge[] = [];
 
   // Determine the main person (root node of the tree)
-  const mainPersonId = findMainPersonId(
+  // If rootPersonId is provided, use it directly; otherwise use email-based lookup
+  let mainPersonId = rootPersonId || findMainPersonId(
     data.persons,
     data.relationships,
     currentUserEmail
   );
   
-  // Correct algorithm: build tree from main person up and down
-  // Main person = level 0, their parents = level 1, grandparents = level 2, etc.
-  // Main person's children = level -1, grandchildren = level -2, etc.
+  // Validate mainPersonId - if empty or invalid, use first person as fallback
+  if (!mainPersonId || !data.persons.find(p => p.id === mainPersonId)) {
+    if (data.persons.length > 0) {
+      mainPersonId = data.persons[0].id;
+    } else {
+      // No persons in tree, return empty nodes/edges
+      return { nodes: [], edges: [] };
+    }
+  }
+  
+  // Build tree based on mode: ancestors (upward) or descendants (downward)
   const levelsFromMain = new Map<string, number>();
   
   // Main person at level 0
   levelsFromMain.set(mainPersonId, 0);
   
-  // BFS from main person: calculate levels of all ancestors (upward)
-  // Main person = level 0, their parents = level 1, grandparents = level 2, etc.
-  let currentLevel = 0;
-  let toProcess = [mainPersonId];
-  const processed = new Set<string>([mainPersonId]);
-  
-  while (toProcess.length > 0) {
-    const nextLevel: string[] = [];
+  if (showDescendants) {
+    // DESCENDANTS MODE: Build tree downward from root
+    // Main person = level 0, their children = level 1, grandchildren = level 2, etc.
+    let currentLevel = 0;
+    let toProcess = [mainPersonId];
+    const processed = new Set<string>([mainPersonId]);
     
-    // Process all people at the current level
-    toProcess.forEach((personId) => {
-      // Find all parents of this person (upward)
-      const parents = data.relationships
-        .filter((rel) => rel.childId === personId)
-        .map((rel) => rel.parentId)
-        .filter((pid) => !processed.has(pid));
+    while (toProcess.length > 0) {
+      const nextLevel: string[] = [];
       
-      parents.forEach((parentId) => {
-        // Set parent level
-        const parentLevel = currentLevel + 1;
-        const existingLevel = levelsFromMain.get(parentId);
+      // Process all people at the current level
+      toProcess.forEach((personId) => {
+        // Find all children of this person (downward)
+        const children = data.relationships
+          .filter((rel) => rel.parentId === personId)
+          .map((rel) => rel.childId)
+          .filter((childId) => !processed.has(childId));
         
-        // If level is not set or is less than needed, set it
-        if (existingLevel === undefined || existingLevel < parentLevel) {
-          levelsFromMain.set(parentId, parentLevel);
-        }
-        
-        if (!processed.has(parentId)) {
-          nextLevel.push(parentId);
-          processed.add(parentId);
-        }
-      });
-    });
-    
-    toProcess = nextLevel;
-    currentLevel++;
-  }
-  
-  // BFS from main person: calculate levels of all descendants (downward)
-  // Main person's children = level -1, grandchildren = level -2, etc.
-  currentLevel = 0;
-  toProcess = [mainPersonId];
-  processed.clear();
-  processed.add(mainPersonId);
-  
-  while (toProcess.length > 0) {
-    const nextLevel: string[] = [];
-    
-    // Process all people at the current level
-    toProcess.forEach((personId) => {
-      // Find all children of this person (downward)
-      const children = data.relationships
-        .filter((rel) => rel.parentId === personId)
-        .map((rel) => rel.childId)
-        .filter((childId) => !processed.has(childId));
-      
-      children.forEach((childId) => {
-        // Set child level
-        const childLevel = currentLevel - 1;
-        const existingLevel = levelsFromMain.get(childId);
-        
-        // If level is not set or is greater than needed (closer to 0), set it
-        if (existingLevel === undefined || existingLevel > childLevel) {
+        children.forEach((childId) => {
+          // Don't change main person level (should stay at 0)
+          if (childId === mainPersonId) return;
+          
+          // Set child level (positive for descendants mode)
+          const childLevel = currentLevel + 1;
           levelsFromMain.set(childId, childLevel);
-        }
-        
-        if (!processed.has(childId)) {
-          nextLevel.push(childId);
-          processed.add(childId);
-        }
+          
+          if (!processed.has(childId)) {
+            nextLevel.push(childId);
+            processed.add(childId);
+          }
+        });
       });
-    });
+      
+      toProcess = nextLevel;
+      currentLevel++;
+    }
+  } else {
+    // ANCESTORS MODE: Build tree upward from root (current behavior)
+    // Main person = level 0, their parents = level 1, grandparents = level 2, etc.
+    let currentLevel = 0;
+    let toProcess = [mainPersonId];
+    const processed = new Set<string>([mainPersonId]);
     
-    toProcess = nextLevel;
-    currentLevel--;
+    while (toProcess.length > 0) {
+      const nextLevel: string[] = [];
+      
+      // Process all people at the current level
+      toProcess.forEach((personId) => {
+        // Find all parents of this person (upward)
+        const parents = data.relationships
+          .filter((rel) => rel.childId === personId)
+          .map((rel) => rel.parentId)
+          .filter((pid) => !processed.has(pid));
+        
+        parents.forEach((parentId) => {
+          // Don't change main person level (should stay at 0)
+          if (parentId === mainPersonId) return;
+          
+          // Set parent level
+          const parentLevel = currentLevel + 1;
+          levelsFromMain.set(parentId, parentLevel);
+          
+          if (!processed.has(parentId)) {
+            nextLevel.push(parentId);
+            processed.add(parentId);
+          }
+        });
+      });
+      
+      toProcess = nextLevel;
+      currentLevel++;
+    }
   }
   
   // Process remaining people (if there are isolated nodes)
   data.persons.forEach((person) => {
     if (!levelsFromMain.has(person.id)) {
-      // If person has no connection to main person, set high level
+      // If person has no connection to main person, set high level (will be filtered out)
       levelsFromMain.set(person.id, 999);
     }
   });
   
-  // Align levels of parents of the same child
-  // If a child has two parents, they should be at the same level
-  let changed = true;
-  let iterations = 0;
-  const maxIterations = data.persons.length * 2;
-  
-  while (changed && iterations < maxIterations) {
-    changed = false;
-    iterations++;
-    
-    // Group by children
-    const childrenByParents = new Map<string, Set<string>>();
+  // Simple alignment: parents of the same child should be at the same level
+  // Since we only show ancestors, all parents will have positive levels
+  const childrenByParents = new Map<string, Set<string>>();
   data.relationships.forEach((rel) => {
-      const childId = rel.childId;
-      if (!childrenByParents.has(childId)) {
-        childrenByParents.set(childId, new Set());
-      }
-      childrenByParents.get(childId)!.add(rel.parentId);
-    });
+    const childId = rel.childId;
+    if (!childrenByParents.has(childId)) {
+      childrenByParents.set(childId, new Set());
+    }
+    childrenByParents.get(childId)!.add(rel.parentId);
+  });
+  
+  // Align parents of the same child to the maximum level among them
+  // Only process children that are actually in the tree (connected to root through ancestors)
+  childrenByParents.forEach((parentIds, childId) => {
+    if (parentIds.size <= 1) return; // One parent - no need to align
     
-    childrenByParents.forEach((parentIds, childId) => {
-      if (parentIds.size <= 1) return; // One parent - no need to align
+    // Only process if child is in the tree and has a valid level (not 999)
+    const childLevel = levelsFromMain.get(childId);
+    if (childLevel === undefined || childLevel === 999) return;
+    
+    const parentLevels = Array.from(parentIds)
+      .map((pid) => {
+        const level = levelsFromMain.get(pid);
+        return level !== undefined && level !== 999 ? level : null;
+      })
+      .filter((d): d is number => d !== null);
+    
+    // Only align if all parents are in the tree and have valid levels
+    if (parentLevels.length === parentIds.size && parentLevels.length > 0) {
+      const maxParentLevel = Math.max(...parentLevels);
       
-      const parentLevels = Array.from(parentIds)
-        .map((pid) => levelsFromMain.get(pid))
-        .filter((d): d is number => d !== undefined);
-      
-      if (parentLevels.length === parentIds.size && parentLevels.length > 0) {
-        const maxParentLevel = Math.max(...parentLevels);
-        const minParentLevel = Math.min(...parentLevels);
-        
-        if (maxParentLevel !== minParentLevel) {
-          // Align all parents to the maximum level
-          parentIds.forEach((pid) => {
-            const currentLevel = levelsFromMain.get(pid);
-            if (currentLevel !== undefined && currentLevel < maxParentLevel) {
-              levelsFromMain.set(pid, maxParentLevel);
-              changed = true;
-            }
-          });
-          
-          // Recalculate child level
-          // If parent is at negative level (descendant), child should be even lower (more negative)
-          // If parent is at positive level (ancestor), child should be higher (more positive)
-          // If parent is at level 0 (main person), child should be at level -1 (descendant)
-          const childLevel = maxParentLevel < 0 ? maxParentLevel - 1 : (maxParentLevel === 0 ? -1 : maxParentLevel + 1);
-          const currentChildLevel = levelsFromMain.get(childId);
-          if (currentChildLevel === undefined || 
-              (maxParentLevel < 0 && currentChildLevel > childLevel) || 
-              (maxParentLevel >= 0 && currentChildLevel < childLevel)) {
-            levelsFromMain.set(childId, childLevel);
-            changed = true;
+      // Align all parents to the maximum level (but don't change main person)
+      parentIds.forEach((pid) => {
+        if (pid !== mainPersonId) {
+          const currentLevel = levelsFromMain.get(pid);
+          // Only update if parent is already in the tree (has valid level)
+          if (currentLevel !== undefined && currentLevel !== 999 && currentLevel < maxParentLevel) {
+            levelsFromMain.set(pid, maxParentLevel);
           }
         }
-      }
-    });
-    
-    // Recalculate levels of all descendants of changed parents
-    if (changed) {
-      const recalculateDescendants = (personId: string, visited = new Set<string>()) => {
-        if (visited.has(personId)) return;
-    visited.add(personId);
-
-        const children = data.relationships
-          .filter((rel) => rel.parentId === personId)
-          .map((rel) => rel.childId);
-        
-        children.forEach((childId) => {
-          const allParents = data.relationships
-            .filter((rel) => rel.childId === childId)
-      .map((rel) => rel.parentId);
-
-          if (allParents.length > 0) {
-            const parentLevels = allParents
-              .map((pid) => levelsFromMain.get(pid))
-              .filter((d): d is number => d !== undefined);
-            
-            if (parentLevels.length === allParents.length && parentLevels.length > 0) {
-              const maxParentLevel = Math.max(...parentLevels);
-              // If parent is at negative level (descendant), child should be even lower
-              // If parent is at positive level (ancestor), child should be higher
-              // Determine direction: if maxParentLevel < 0, go down (decrease), otherwise up (increase)
-              const childLevel = maxParentLevel < 0 ? maxParentLevel - 1 : maxParentLevel + 1;
-              
-              const currentLevel = levelsFromMain.get(childId);
-              // Update level if it's not set or doesn't match calculated value
-              if (currentLevel === undefined || 
-                  (maxParentLevel < 0 && currentLevel > childLevel) || 
-                  (maxParentLevel >= 0 && currentLevel < childLevel)) {
-                levelsFromMain.set(childId, childLevel);
-                recalculateDescendants(childId, new Set(visited));
-              }
-            }
-          }
-        });
-      };
-      
-      // Recalculate all descendants of changed parents
-  data.persons.forEach((person) => {
-        recalculateDescendants(person.id);
       });
     }
-  }
+  });
   
   // Normalize levels: main person is always at level 0
-  // Descendants get negative levels, ancestors - positive levels
+  // Only ancestors are shown (positive levels: 1, 2, 3, ...)
   // Don't shift levels, keep main person at level 0
   const normalizedLevels = new Map<string, number>();
   levelsFromMain.forEach((level, personId) => {
     if (level === 999) {
       normalizedLevels.set(personId, 999);
     } else {
-      // Keep levels as is: main person = 0, descendants = -1, -2, ..., ancestors = 1, 2, ...
+      // Keep levels as is: main person = 0, ancestors = 1, 2, 3, ...
       normalizedLevels.set(personId, level);
     }
   });
@@ -363,15 +313,24 @@ function transformToFlowData(data: FamilyTreeData, currentUserEmail?: string, se
   };
   
   // Process all levels from minimum to maximum
-  // Level 0 (main person) should be at bottom, descendants (level < 0) below it, ancestors (level > 0) above
-  // Y increases downward, so: descendants should have greater Y, ancestors - smaller Y
+  // Calculate Y positions based on mode:
+  // - Ancestors mode (showDescendants = false): root at bottom, ancestors above
+  // - Descendants mode (showDescendants = true): root at top, descendants below
   for (let level = minNormalizedLevel; level <= maxNormalizedLevel; level++) {
     const persons = personsByLevel.get(level) || [];
-    // Calculate Y position: 
-    // - Main person (level 0): y = startY
-    // - Descendants (level < 0, e.g. -1): y = startY - level * spacing = startY + spacing (lower)
-    // - Ancestors (level > 0, e.g. 1): y = startY - level * spacing = startY - spacing (higher)
-    const y = startY - level * levelSpacing;
+    
+    let y: number;
+    if (showDescendants) {
+      // DESCENDANTS MODE: root at top, descendants below
+      // Root (level 0) at top: y = startY - maxLevel * spacing
+      // Descendants (level > 0): y = startY - (maxNormalizedLevel - level) * spacing (below root)
+      y = startY - (maxNormalizedLevel - level) * levelSpacing;
+    } else {
+      // ANCESTORS MODE: root at bottom, ancestors above
+      // Root (level 0): y = startY (at bottom)
+      // Ancestors (level > 0): y = startY - level * spacing (above root)
+      y = startY - level * levelSpacing;
+    }
     
     if (level === 0) {
       // Main person in center
@@ -379,19 +338,99 @@ function transformToFlowData(data: FamilyTreeData, currentUserEmail?: string, se
         nodePositions.set(person.id, { x: centerX, y });
       });
     } else if (level > 0) {
-      // For ancestors, position relative to their children
-      // First, group parents by their common children (spouses)
-      const parentGroups = new Map<string, Person[]>();
-      
-      persons.forEach((person) => {
-        // Find all children of this person at the next level down (level - 1)
-        const children = data.relationships
-          .filter((rel) => rel.parentId === person.id)
-          .map((rel) => rel.childId)
-          .filter((childId) => {
-            const childLevel = normalizedLevels.get(childId);
-            return childLevel !== undefined && childLevel === level - 1;
-          });
+      if (showDescendants) {
+        // DESCENDANTS MODE: Position descendants relative to their parents (who are above)
+        // Group children by their common parents (siblings)
+        const siblingGroups = new Map<string, Person[]>();
+        
+        persons.forEach((person) => {
+          // Find all parents of this person at the previous level (level - 1)
+          const parents = data.relationships
+            .filter((rel) => rel.childId === person.id)
+            .map((rel) => rel.parentId)
+            .filter((parentId) => {
+              const parentLevel = normalizedLevels.get(parentId);
+              return parentLevel !== undefined && parentLevel === level - 1;
+            });
+          
+          if (parents.length > 0) {
+            // Create group key based on sorted parent IDs
+            const parentsKey = parents.sort().join(',');
+            
+            if (!siblingGroups.has(parentsKey)) {
+              siblingGroups.set(parentsKey, []);
+            }
+            siblingGroups.get(parentsKey)!.push(person);
+          }
+        });
+        
+        // Position each sibling group
+        siblingGroups.forEach((siblings) => {
+          if (siblings.length === 0) return;
+          
+          // Get parent positions to center siblings below them
+          const firstPerson = siblings[0];
+          const parents = data.relationships
+            .filter((rel) => rel.childId === firstPerson.id)
+            .map((rel) => rel.parentId)
+            .filter((parentId) => {
+              const parentLevel = normalizedLevels.get(parentId);
+              return parentLevel !== undefined && parentLevel === level - 1;
+            });
+          
+          const parentPositions = parents
+            .map((pid) => nodePositions.get(pid))
+            .filter((pos): pos is { x: number; y: number } => pos !== undefined);
+          
+          if (parentPositions.length > 0) {
+            // Center siblings below their parents
+            const minParentX = Math.min(...parentPositions.map(p => p.x));
+            const maxParentX = Math.max(...parentPositions.map(p => p.x));
+            const parentCenterX = (minParentX + maxParentX) / 2;
+            
+            // Distribute siblings horizontally
+            const totalWidth = (siblings.length - 1) * minSpouseDistance;
+            const startX = parentCenterX - totalWidth / 2;
+            
+            siblings.forEach((person, index) => {
+              const desiredX = startX + index * minSpouseDistance;
+              const adjustedX = adjustPositionToAvoidOverlap(desiredX, y, level, person.id);
+              nodePositions.set(person.id, { x: adjustedX, y });
+            });
+          } else {
+            // Fallback: center siblings if no parent positions found
+            const totalWidth = (siblings.length - 1) * minSpouseDistance;
+            const startX = centerX - totalWidth / 2;
+            
+            siblings.forEach((person, index) => {
+              const desiredX = startX + index * minSpouseDistance;
+              const adjustedX = adjustPositionToAvoidOverlap(desiredX, y, level, person.id);
+              nodePositions.set(person.id, { x: adjustedX, y });
+            });
+          }
+        });
+        
+        // Process descendants without parents at the previous level
+        persons.forEach((person) => {
+          if (!nodePositions.has(person.id)) {
+            const adjustedX = adjustPositionToAvoidOverlap(centerX, y, level, person.id);
+            nodePositions.set(person.id, { x: adjustedX, y });
+          }
+        });
+      } else {
+        // ANCESTORS MODE: Position ancestors relative to their children
+        // First, group parents by their common children (spouses)
+        const parentGroups = new Map<string, Person[]>();
+        
+        persons.forEach((person) => {
+          // Find all children of this person at the next level down (level - 1)
+          const children = data.relationships
+            .filter((rel) => rel.parentId === person.id)
+            .map((rel) => rel.childId)
+            .filter((childId) => {
+              const childLevel = normalizedLevels.get(childId);
+              return childLevel !== undefined && childLevel === level - 1;
+            });
         
         if (children.length > 0) {
           // Create group key based on sorted child IDs
@@ -519,111 +558,77 @@ function transformToFlowData(data: FamilyTreeData, currentUserEmail?: string, se
         }
       });
       
-      // Process parents without children at the next level
-      persons.forEach((person) => {
-        if (!nodePositions.has(person.id)) {
-          const adjustedX = adjustPositionToAvoidOverlap(centerX, y, level, person.id);
-          nodePositions.set(person.id, { x: adjustedX, y });
-        }
-      });
-    } else {
-      // For descendants (level < 0, but after normalization this is level > 0, but less than main person level)
-      // Descendants are positioned relative to their parents
-      // Group children by their common parents (siblings)
-      const childrenGroups = new Map<string, Person[]>();
-      
-      persons.forEach((person) => {
-        // Find all parents of this person at the next level up (level + 1)
-        const parents = data.relationships
-          .filter((rel) => rel.childId === person.id)
-          .map((rel) => rel.parentId)
-          .filter((parentId) => {
-            const parentLevel = normalizedLevels.get(parentId);
-            return parentLevel !== undefined && parentLevel === level + 1;
-          });
-        
-        if (parents.length > 0) {
-          // Create group key based on sorted parent IDs
-          const parentsKey = parents.sort().join(',');
-          
-          if (!childrenGroups.has(parentsKey)) {
-            childrenGroups.set(parentsKey, []);
+        // Process parents without children at the next level
+        persons.forEach((person) => {
+          if (!nodePositions.has(person.id)) {
+            const adjustedX = adjustPositionToAvoidOverlap(centerX, y, level, person.id);
+            nodePositions.set(person.id, { x: adjustedX, y });
           }
-          childrenGroups.get(parentsKey)!.push(person);
-        }
-      });
-      
-      // Process each sibling group
-      childrenGroups.forEach((childrenGroup, parentsKey) => {
-        const parentIds = parentsKey.split(',');
-        
-        // Calculate average position of all parents in this group
-        const parentPositions = parentIds
-          .map((parentId) => nodePositions.get(parentId))
-          .filter((pos): pos is { x: number; y: number } => pos !== undefined);
-        
-        if (parentPositions.length > 0) {
-          const avgParentX = parentPositions.reduce((sum, pos) => sum + pos.x, 0) / parentPositions.length;
-          
-          // Distribute children horizontally under parents
-          const childrenCount = childrenGroup.length;
-          const spacing = Math.max(minSpouseDistance, 250); // Distance between children
-          const totalWidth = spacing * (childrenCount - 1);
-          const startX = avgParentX - totalWidth / 2;
-          
-          childrenGroup.forEach((child, index) => {
-            const desiredX = startX + index * spacing;
-            const adjustedX = adjustPositionToAvoidOverlap(desiredX, y, level, child.id);
-            nodePositions.set(child.id, { x: adjustedX, y });
-          });
-        }
-      });
-      
-      // Process children without parents at the next level
-      persons.forEach((person) => {
-        if (!nodePositions.has(person.id)) {
-          const adjustedX = adjustPositionToAvoidOverlap(centerX, y, level, person.id);
-          nodePositions.set(person.id, { x: adjustedX, y });
-        }
-      });
+        });
+      }
     }
   }
   
   // Create nodes with calculated positions
+  // Only create nodes for people who are connected to the root (have a valid level, not 999)
   data.persons.forEach((person) => {
-    const position = nodePositions.get(person.id) || { x: 0, y: 0 };
+    const level = normalizedLevels.get(person.id);
+    // Skip people who are not connected to the root (level 999 or undefined)
+    if (level === undefined || level === 999) return;
+    
+    const position = nodePositions.get(person.id);
+    // Skip if position was not calculated (person is not in the tree)
+    if (!position) return;
+    
     const isMainPerson = person.id === mainPersonId;
+    // In descendants mode, root should be a regular node (no special height or trunk)
+    // In ancestors mode, root has larger height (450px) to show trunk
+    const nodeHeight = isMainPerson && !showDescendants ? 450 : 180;
 
-      nodes.push({
-        id: person.id,
-        type: 'familyNode',
+    nodes.push({
+      id: person.id,
+      type: 'familyNode',
       position,
-        data: {
-          person,
-          isMainPerson,
-          relationships: data.relationships,
-          mainPersonId,
-          persons: data.persons,
+      data: {
+        person,
+        isMainPerson,
+        relationships: data.relationships,
+        mainPersonId,
+        persons: data.persons,
         isSelected: selectedNodeId === person.id,
-        },
-        width: 200,
-      height: isMainPerson ? 450 : 180,
-        sourcePosition: Position.Bottom,
-        targetPosition: Position.Top,
+        showDescendants,
+      },
+      width: 200,
+      height: nodeHeight,
+      sourcePosition: Position.Bottom,
+      targetPosition: Position.Top,
     });
   });
 
   // Create edges with thickness depending on level
   // Function to calculate edge thickness based on parent level
   const getStrokeWidth = (parentLevel: number): number => {
-    // Level 0 (main person) -> 50px, each next level is twice thinner
+    // In descendants mode, all edges are thin (no trunk)
+    if (showDescendants) {
+      return 4;
+    }
+    // In ancestors mode: Level 0 (main person) -> 40px, each next level is twice thinner
     const width = 40 / Math.pow(2, parentLevel);
     // Minimum 4px
     return Math.max(Math.round(width), 4);
   };
 
+  // Create edges only for relationships where both parent and child are in the tree
   data.relationships.forEach((rel) => {
-    const parentLevel = normalizedLevels.get(rel.parentId) || 0;
+    const parentLevel = normalizedLevels.get(rel.parentId);
+    const childLevel = normalizedLevels.get(rel.childId);
+    
+    // Only create edge if both parent and child are connected to root (have valid levels, not 999)
+    if (parentLevel === undefined || parentLevel === 999 || 
+        childLevel === undefined || childLevel === 999) {
+      return;
+    }
+    
     const strokeWidth = getStrokeWidth(parentLevel);
     
     edges.push({
@@ -681,7 +686,7 @@ function FlowContent({ nodes, onFitted }: { nodes: Node[]; onFitted: () => void 
       
       return () => clearTimeout(timeoutId);
     }
-  }, [fitView, nodes.length]);
+  }, [fitView, nodes]);
 
   return null;
 }
@@ -693,8 +698,10 @@ export default function FamilyTree({ data: initialData, className = '', currentU
   const [isEditPanelOpen, setIsEditPanelOpen] = useState(false);
   const [personToEdit, setPersonToEdit] = useState<Person | null>(null);
   const [isFitted, setIsFitted] = useState(false);
-  // Track previous data for comparison
-  const prevDataRef = useRef<FamilyTreeData | null>(null);
+  const [tree, setTree] = useState(false);
+  const [isRootUserDialogOpen, setIsRootUserDialogOpen] = useState(false);
+  const [selectedRootPersonId, setSelectedRootPersonId] = useState<string | null>(null);
+  const [tempSelectedRootPersonId, setTempSelectedRootPersonId] = useState<string | null>(null);
   const prevPersonsCountRef = useRef(0);
   
   // Sync with initialData when it changes
@@ -704,7 +711,6 @@ export default function FamilyTree({ data: initialData, className = '', currentU
     
     // Always update data, but reset isFitted only when structure changes
     setData(initialData);
-    prevDataRef.current = initialData;
     
     // Reset fitView state only when number of persons changes
     // (this means real change in tree structure)
@@ -719,9 +725,23 @@ export default function FamilyTree({ data: initialData, className = '', currentU
     setIsFitted(true);
   }, []);
 
+  // Determine which email to use for tree root: selected root person or current user email
+  const rootUserEmail = useMemo(() => {
+    if (selectedRootPersonId) {
+      const selectedPerson = data.persons.find(p => p.id === selectedRootPersonId);
+      return selectedPerson?.email || undefined;
+    }
+    return currentUserEmail;
+  }, [selectedRootPersonId, data.persons, currentUserEmail]);
+
+  // Memoize mainPersonId to avoid recalculating it multiple times
+  const mainPersonId = useMemo(() => {
+    return findMainPersonId(data.persons, data.relationships, rootUserEmail);
+  }, [data.persons, data.relationships, rootUserEmail]);
+
   const { nodes, edges } = useMemo(
-    () => transformToFlowData(data, currentUserEmail, selectedNodeId || undefined),
-    [data, currentUserEmail, selectedNodeId]
+    () => transformToFlowData(data, rootUserEmail, selectedNodeId || undefined, selectedRootPersonId || undefined, tree),
+    [data, rootUserEmail, selectedNodeId, selectedRootPersonId, tree]
   );
 
   // Track tree structure changes (number of nodes) to apply fitView only on real changes
@@ -732,6 +752,11 @@ export default function FamilyTree({ data: initialData, className = '', currentU
       setIsFitted(false);
     }
   }, [nodes.length]);
+
+  // Reset fitView when root user changes
+  useEffect(() => {
+    setIsFitted(false);
+  }, [selectedRootPersonId]);
 
   const selectedPerson = useMemo(() => {
     if (!selectedNodeId) return null;
@@ -796,6 +821,65 @@ export default function FamilyTree({ data: initialData, className = '', currentU
           parentId: relatedPersonId,
           childId: newPersonId,
         };
+        
+        // Find spouse of the parent (another parent who shares children with this parent)
+        // This ensures that when building tree from the new child, both parental lines are visible
+        const parentChildren = data.relationships
+          .filter((rel) => rel.parentId === relatedPersonId)
+          .map((rel) => rel.childId);
+        
+        // Find other parents who share at least one child with this parent
+        // These are potential spouses (parents of the same children)
+        const spouseCandidates = new Set<string>();
+        parentChildren.forEach((childId) => {
+          const childParents = data.relationships
+            .filter((rel) => rel.childId === childId)
+            .map((rel) => rel.parentId)
+            .filter((pid) => pid !== relatedPersonId);
+          childParents.forEach((pid) => spouseCandidates.add(pid));
+        });
+        
+        // If there's a spouse candidate, create relationship with them too
+        if (spouseCandidates.size > 0) {
+          // Find the spouse (should be opposite gender and share children)
+          const spouseId = Array.from(spouseCandidates).find((candidateId) => {
+            const candidate = data.persons.find((p) => p.id === candidateId);
+            if (!candidate) return false;
+            // Check if they have opposite gender (spouses typically have opposite genders)
+            const isOppositeGender = candidate.gender && relatedPerson.gender && 
+                                     candidate.gender !== relatedPerson.gender;
+            // Check if they share children (already verified by being in spouseCandidates)
+            return isOppositeGender;
+          });
+          
+          if (spouseId) {
+            // Add relationship with spouse as well
+            const spouseRelationship: Relationship = {
+              id: `rel-${Date.now()}-${Math.random().toString(36).substr(2, 9)}-spouse`,
+              parentId: spouseId,
+              childId: newPersonId,
+            };
+            
+            // Update data with both relationships
+            setData((prevData) => {
+              const updatedPersons = [...prevData.persons, newPerson];
+              const updatedRelationships = [
+                ...prevData.relationships,
+                newRelationship!,
+                spouseRelationship,
+              ];
+              
+              return {
+                persons: updatedPersons,
+                relationships: updatedRelationships,
+              };
+            });
+            
+            // Close add panel
+            setIsAddPanelOpen(false);
+            return; // Early return since we've already updated data
+          }
+        }
       } else if (type === 'parent') {
         // New person is a parent of the selected person
         // relatedPersonId is the child of the new person
@@ -819,7 +903,8 @@ export default function FamilyTree({ data: initialData, className = '', currentU
       }
     }
 
-    // Update data
+    // Update data (only if we haven't already updated it above for spouse case)
+    // If we found a spouse and created relationships, we already updated data and returned early
     setData((prevData) => {
       const updatedPersons = [...prevData.persons, newPerson];
       const updatedRelationships = newRelationship
@@ -890,23 +975,60 @@ export default function FamilyTree({ data: initialData, className = '', currentU
     setPersonToEdit(null);
   }, []);
 
+  const handleRebuildTree = useCallback(() => {
+    if (tempSelectedRootPersonId) {
+      // Apply the selected root person and rebuild tree
+      setSelectedRootPersonId(tempSelectedRootPersonId);
+      setIsFitted(false);
+    }
+    setIsRootUserDialogOpen(false);
+  }, [tempSelectedRootPersonId]);
+
+  const handleCancelRootUser = useCallback(() => {
+    setTempSelectedRootPersonId(null);
+    setIsRootUserDialogOpen(false);
+  }, []);
+
   const fullName = selectedPerson ? getPersonFullName(selectedPerson) : '';
 
   return (
     <div className={`w-full h-full ${className} relative`}>
       {/* Add Person Button */}
-      {!isAddPanelOpen && !isEditPanelOpen && !selectedPerson && (
-        <button
-          onClick={() => {
-            setIsAddPanelOpen(true);
-            setSelectedNodeId(null);
-          }}
-          className="absolute top-4 right-4 z-50 w-12 h-12 bg-green-400 text-white rounded-full shadow-lg hover:bg-green-500 transition-colors flex items-center justify-center text-4xl font-bold leading-none cursor-pointer"
-          aria-label="Add new person"
-        >
-          <span className="relative -top-1">+</span>
-        </button>
-      )}
+      <button
+        onClick={() => {
+          setIsAddPanelOpen(true);
+          setSelectedNodeId(null);
+        }}
+        className="absolute top-4 left-4 z-50 w-12 h-12 bg-green-400 text-white rounded-full shadow-lg hover:bg-green-500 transition-colors flex items-center justify-center text-4xl font-bold leading-none cursor-pointer"
+        aria-label="Add new person"
+        title="Add person"
+      >
+        <span className="relative -top-1">+</span>
+      </button>
+
+      {/* Tree Toggle Button */}
+      <button
+        onClick={() => setTree(!tree)}
+        className="absolute top-20 left-4 z-50 w-12 h-12 bg-green-400 text-white rounded-full shadow-lg hover:bg-green-500 transition-colors flex items-center justify-center cursor-pointer"
+        aria-label="Toggle tree"
+        title="Toggle ancestors/descendants mode"
+      >
+        <Network className="h-6 w-6" style={{ transform: tree ? 'scaleY(1)' : 'scaleY(-1)' }} />
+      </button>
+
+      {/* Root User Button */}
+      <button
+        onClick={() => {
+          // Initialize temp selected root person with current root person if exists
+          setTempSelectedRootPersonId(selectedRootPersonId || mainPersonId || null);
+          setIsRootUserDialogOpen(true);
+        }}
+        className="absolute top-36 left-4 z-50 w-12 h-12 bg-green-400 text-white rounded-full shadow-lg hover:bg-green-500 transition-colors flex items-center justify-center cursor-pointer"
+        aria-label="Set root user"
+        title="Set as root"
+      >
+        <UserStar className="h-6 w-6" />
+      </button>
 
       <div className="w-full h-full relative">
       <ReactFlow
@@ -938,7 +1060,7 @@ export default function FamilyTree({ data: initialData, className = '', currentU
           person={selectedPerson} 
           fullName={fullName}
           onClose={() => setSelectedNodeId(null)}
-          isMainPerson={findMainPersonId(data.persons, data.relationships, currentUserEmail) === selectedPerson.id}
+          isMainPerson={mainPersonId === selectedPerson.id}
           onDelete={handleDeletePerson}
           onEdit={handleEditPerson}
           persons={data.persons}
@@ -953,7 +1075,7 @@ export default function FamilyTree({ data: initialData, className = '', currentU
           onSave={handleAddPerson}
           persons={data.persons}
           relationships={data.relationships}
-          mainPersonId={findMainPersonId(data.persons, data.relationships, currentUserEmail)}
+          mainPersonId={mainPersonId}
         />
       )}
 
@@ -968,9 +1090,70 @@ export default function FamilyTree({ data: initialData, className = '', currentU
           onUpdate={handleUpdatePerson}
           persons={data.persons}
           relationships={data.relationships}
-          mainPersonId={findMainPersonId(data.persons, data.relationships, currentUserEmail)}
+          mainPersonId={mainPersonId}
           personToEdit={personToEdit}
         />
+      )}
+
+      {/* Root User Dialog */}
+      {isRootUserDialogOpen && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4 p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-2xl font-bold text-gray-900">Set Root User</h2>
+              <button
+                onClick={handleCancelRootUser}
+                className="text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"
+                aria-label="Close"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            
+            <p className="text-gray-700 mb-4">
+              Select a user to rebuild the tree relative to them:
+            </p>
+
+            <div className="max-h-64 overflow-y-auto mb-6 border border-gray-200 rounded-lg">
+              {data.persons.map((person) => {
+                const fullName = getPersonFullName(person);
+                const isSelected = tempSelectedRootPersonId === person.id;
+                return (
+                  <button
+                    key={person.id}
+                    onClick={() => setTempSelectedRootPersonId(person.id)}
+                    className={`w-full text-left px-4 py-3 hover:bg-gray-50 transition-colors border-b border-gray-100 last:border-b-0 ${
+                      isSelected ? 'bg-green-50 text-green-600' : 'text-gray-700'
+                    }`}
+                  >
+                    <div className="font-medium">{fullName}</div>
+                    {person.email && (
+                      <div className="text-sm text-gray-500">{person.email}</div>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+
+            <div className="flex gap-3">
+              <Button
+                variant="outline"
+                onClick={handleCancelRootUser}
+                className="flex-1"
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="primary"
+                onClick={handleRebuildTree}
+                className="flex-1"
+                disabled={!tempSelectedRootPersonId}
+              >
+                Rebuild Tree
+              </Button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

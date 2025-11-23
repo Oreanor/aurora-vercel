@@ -110,6 +110,49 @@ const mockFamilyData1: FamilyTreeData = {
       deathDate: '1995-11-08',
       gender: 'female',
     },
+    // Sons of Peter Smith
+    {
+      id: 'person-12',
+      firstName: 'Robert',
+      lastName: 'Smith',
+      middleName: '',
+      birthDate: '1962-04-10',
+      gender: 'male',
+    },
+    {
+      id: 'person-13',
+      firstName: 'James',
+      lastName: 'Smith',
+      middleName: '',
+      birthDate: '1965-09-22',
+      gender: 'male',
+    },
+    // Sons of Robert Smith (grandsons of Peter)
+    {
+      id: 'person-14',
+      firstName: 'Thomas',
+      lastName: 'Smith',
+      middleName: '',
+      birthDate: '1985-07-15',
+      gender: 'male',
+    },
+    {
+      id: 'person-15',
+      firstName: 'Daniel',
+      lastName: 'Smith',
+      middleName: '',
+      birthDate: '1988-11-30',
+      gender: 'male',
+    },
+    // Son of James Smith (grandson of Peter)
+    {
+      id: 'person-16',
+      firstName: 'Christopher',
+      lastName: 'Smith',
+      middleName: '',
+      birthDate: '1990-03-08',
+      gender: 'male',
+    },
   ],
   relationships: [
     // John - son of Alex
@@ -171,6 +214,36 @@ const mockFamilyData1: FamilyTreeData = {
       id: 'rel-10',
       parentId: 'person-11',
       childId: 'person-7',
+    },
+    // Robert - son of Peter
+    {
+      id: 'rel-11',
+      parentId: 'person-4',
+      childId: 'person-12',
+    },
+    // James - son of Peter
+    {
+      id: 'rel-12',
+      parentId: 'person-4',
+      childId: 'person-13',
+    },
+    // Thomas - son of Robert
+    {
+      id: 'rel-13',
+      parentId: 'person-12',
+      childId: 'person-14',
+    },
+    // Daniel - son of Robert
+    {
+      id: 'rel-14',
+      parentId: 'person-12',
+      childId: 'person-15',
+    },
+    // Christopher - son of James
+    {
+      id: 'rel-15',
+      parentId: 'person-13',
+      childId: 'person-16',
     },
   ],
 };
