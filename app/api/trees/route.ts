@@ -29,11 +29,22 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Combine mock trees and user-created trees
-    const allTrees = [...mockFamilyTrees, ...(global.userCreatedTrees || [])];
+    // Mock trees are always accessible to all users
+    // User-created trees are filtered by access rights
+    const mockTrees = mockFamilyTrees.map(tree => ({
+      id: tree.id,
+      name: tree.name,
+      role: tree.access.owner.includes(email) 
+        ? 'owner' 
+        : tree.access.editor.includes(email) 
+        ? 'editor' 
+        : 'viewer', // Default to viewer for mock trees if user is not in access list
+      createdAt: tree.createdAt,
+      updatedAt: tree.updatedAt,
+    }));
     
-    // Filter trees that the user has access to
-    const accessibleTrees = allTrees
+    // Filter user-created trees that the user has access to
+    const userCreatedTrees = (global.userCreatedTrees || [])
       .filter(tree => {
         const { owner, editor, viewer } = tree.access;
         return (
@@ -53,6 +64,9 @@ export async function GET(request: NextRequest) {
         createdAt: tree.createdAt,
         updatedAt: tree.updatedAt,
       }));
+    
+    // Combine mock trees (always accessible) with user-created trees
+    const accessibleTrees = [...mockTrees, ...userCreatedTrees];
 
     // Simulate network delay
     await new Promise(resolve => setTimeout(resolve, 300));
