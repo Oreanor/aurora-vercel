@@ -1,10 +1,12 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { Person, Relationship } from '@/types/family';
 import { Edit, Trash2 } from 'lucide-react';
 import { getPersonFullName, findAllAncestors } from '@/lib/utils';
+import Button from '@/components/ui/button';
 
 interface PersonDetailsPanelProps {
   person: Person;
@@ -27,6 +29,7 @@ export default function PersonDetailsPanel({
   persons = [],
   relationships = []
 }: PersonDetailsPanelProps) {
+  const router = useRouter();
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [ancestorsToDelete, setAncestorsToDelete] = useState<Person[]>([]);
 
@@ -50,6 +53,19 @@ export default function PersonDetailsPanel({
     setShowDeleteConfirm(false);
     setAncestorsToDelete([]);
   };
+
+  const handleChatroomClick = () => {
+    router.push(`/chatroom?personId=${person.id}`);
+  };
+
+  const handleTimeVaultClick = () => {
+    // TODO: Implement Time Vault functionality
+  };
+
+  const handleMyStoryVideoClick = () => {
+    // TODO: Implement My Story Video functionality
+  };
+
   return (
     <div 
       className="absolute right-0 top-0 h-full w-[min(50%,500px)] bg-white border-l border-gray-200 shadow-lg z-40 flex flex-col"
@@ -125,6 +141,22 @@ export default function PersonDetailsPanel({
             </div>
           </div>
 
+          {/* Biography */}
+          {person.biography && (
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-3">Biography</h3>
+              <p className="text-sm text-gray-900 whitespace-pre-wrap">{person.biography}</p>
+            </div>
+          )}
+
+          {/* Hobbies */}
+          {person.hobbies && (
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-3">Hobbies</h3>
+              <p className="text-sm text-gray-900 whitespace-pre-wrap">{person.hobbies}</p>
+            </div>
+          )}
+
           {/* Qualities */}
           {person.qualities && (
             <div>
@@ -181,6 +213,36 @@ export default function PersonDetailsPanel({
               </div>
             </div>
           )}
+        </div>
+      </div>
+
+      {/* Action Buttons - Fixed at bottom */}
+      <div className="flex-shrink-0 p-6 border-t border-gray-200 bg-white">
+        <div className="flex gap-3">
+          <Button
+            type="button"
+            variant="primary"
+            onClick={handleChatroomClick}
+            className="flex-1"
+          >
+            Chatroom
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={handleTimeVaultClick}
+            className="flex-1"
+          >
+            Time Vault
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={handleMyStoryVideoClick}
+            className="flex-1"
+          >
+            My Story Video
+          </Button>
         </div>
       </div>
 

@@ -1,9 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Person, Gender, IQualities } from '@/types/family';
 import Button from '@/components/ui/button';
 import Input from '@/components/ui/input';
+import Textarea from '@/components/ui/textarea';
 import Select from '@/components/ui/select';
 import { formatDateForInput } from '@/lib/utils';
 
@@ -21,6 +22,8 @@ export default function CreateFirstPersonPanel({ onClose, onSave }: CreateFirstP
     deathDate: '',
     gender: undefined,
     photo: '',
+    biography: '',
+    hobbies: '',
     qualities: undefined,
   });
 
@@ -63,6 +66,13 @@ export default function CreateFirstPersonPanel({ onClose, onSave }: CreateFirstP
     setQualities((prev) => ({ ...prev, [field]: value }));
   };
 
+  const formRef = useRef<HTMLFormElement>(null);
+
+  const handleFormSubmit = () => {
+    if (formRef.current) {
+      formRef.current.requestSubmit();
+    }
+  };
 
   return (
     <div className="fixed right-0 top-15 h-[calc(100vh-60px)] w-[min(50%,500px)] bg-white border-l border-gray-200 shadow-lg z-[100] flex flex-col">
@@ -77,7 +87,7 @@ export default function CreateFirstPersonPanel({ onClose, onSave }: CreateFirstP
         </button>
       </div>
 
-      <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-6">
+      <form ref={formRef} onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-6">
         <div className="space-y-6">
           <div>
             <h3 className="text-lg font-semibold text-gray-900 mb-3">Basic Information</h3>
@@ -145,6 +155,30 @@ export default function CreateFirstPersonPanel({ onClose, onSave }: CreateFirstP
                 placeholder="https://example.com/photo.jpg"
               />
             </div>
+          </div>
+
+          {/* Biography Section */}
+          <div>
+            <h3 className="text-lg font-semibold text-gray-900 mb-3">Biography</h3>
+            <Textarea
+              label=""
+              value={formData.biography || ''}
+              onChange={(e) => handleChange('biography', e.target.value)}
+              placeholder="Tell us about yourself..."
+              rows={4}
+            />
+          </div>
+
+          {/* Hobbies Section */}
+          <div>
+            <h3 className="text-lg font-semibold text-gray-900 mb-3">Hobbies</h3>
+            <Textarea
+              label=""
+              value={formData.hobbies || ''}
+              onChange={(e) => handleChange('hobbies', e.target.value)}
+              placeholder="List your hobbies and interests..."
+              rows={3}
+            />
           </div>
 
           {/* Qualities Section */}
@@ -259,27 +293,30 @@ export default function CreateFirstPersonPanel({ onClose, onSave }: CreateFirstP
               </div>
             )}
           </div>
-
-          {/* Form Actions */}
-          <div className="flex gap-3 pt-4 border-t border-gray-200">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={onClose}
-              className="flex-1"
-            >
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              variant="primary"
-              className="flex-1"
-            >
-              Create Tree
-            </Button>
-          </div>
         </div>
       </form>
+
+      {/* Form Actions - Fixed at bottom */}
+      <div className="flex-shrink-0 p-6 border-t border-gray-200 bg-white">
+        <div className="flex gap-3">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={onClose}
+            className="flex-1"
+          >
+            Cancel
+          </Button>
+          <Button
+            type="button"
+            variant="primary"
+            onClick={handleFormSubmit}
+            className="flex-1"
+          >
+            Create Tree
+          </Button>
+        </div>
+      </div>
     </div>
   );
 }

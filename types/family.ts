@@ -21,6 +21,8 @@ export interface Person {
   photo?: string; // photo URL
   qualities?: IQualities; // qualities
   email?: string; // user email for identification and invitations
+  biography?: string; // biography text
+  hobbies?: string; // hobbies text
 }
 
 export interface IQualities {

@@ -124,6 +124,16 @@ export function generateSystemPrompt(person: Person, role: string): string {
     prompt += "You are a man. ";
   }
 
+  // Add biography if it exists
+  if (person.biography) {
+    prompt += `About yourself: ${person.biography} `;
+  }
+
+  // Add hobbies if they exist
+  if (person.hobbies) {
+    prompt += `Your hobbies and interests include: ${person.hobbies} `;
+  }
+
   // Add qualities if they exist
   if (person.qualities) {
     const qualities = person.qualities;
@@ -488,6 +498,8 @@ export function hasUnsavedPersonChanges(
       formatDateForComparison(formData.deathDate) !== formatDateForComparison(personToEdit.deathDate) ||
       currentGender !== originalGender ||
       formData.photo !== (personToEdit.photo || '') ||
+      formData.biography !== (personToEdit.biography || '') ||
+      formData.hobbies !== (personToEdit.hobbies || '') ||
       JSON.stringify(showQualities ? qualities : undefined) !== JSON.stringify(personToEdit.qualities)) {
     return true;
   }

@@ -1,12 +1,15 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import { mockFamilyData } from "@/lib/mock-family-data";
 import { getPersonRole, sortFamilyMembersByRole, findMainPersonId, getPersonFullName } from "@/lib/utils";
 import ChatWindow from "@/components/features/chat-window";
 import Select from "@/components/ui/select";
 
 export default function ChatroomPage() {
+  const searchParams = useSearchParams();
+  
   // Find main person
   const mainPersonId = useMemo(() => {
     return findMainPersonId(
@@ -31,7 +34,18 @@ export default function ChatroomPage() {
     return sortFamilyMembersByRole(members);
   }, [mainPersonId]);
 
-  const [selectedPersonId, setSelectedPersonId] = useState<string>("");
+  // Initialize selectedPersonId from URL query parameter or empty string
+  const [selectedPersonId, setSelectedPersonId] = useState<string>(() => {
+    return searchParams.get('personId') || '';
+  });
+
+  // Update selectedPersonId when URL query parameter changes
+  useEffect(() => {
+    const personIdFromUrl = searchParams.get('personId');
+    if (personIdFromUrl) {
+      setSelectedPersonId(personIdFromUrl);
+    }
+  }, [searchParams]);
 
   const selectedPerson =
     selectedPersonId

@@ -1,9 +1,10 @@
 'use client';
 
-import React, { useState, useEffect, useCallback, useImperativeHandle } from 'react';
+import React, { useState, useEffect, useCallback, useImperativeHandle, useRef } from 'react';
 import { Person, Gender, IQualities, Relationship } from '@/types/family';
 import Button from '@/components/ui/button';
 import Input from '@/components/ui/input';
+import Textarea from '@/components/ui/textarea';
 import Select from '@/components/ui/select';
 import PersonAutocomplete from '@/components/ui/person-autocomplete';
 import { formatDateForInput, validateParentRelationship, validateChildRelationship, hasUnsavedPersonChanges } from '@/lib/utils';
@@ -43,6 +44,8 @@ const AddPersonPanel = React.forwardRef<AddPersonPanelRef, AddPersonPanelProps>(
         deathDate: personToEdit.deathDate ? (typeof personToEdit.deathDate === 'string' ? personToEdit.deathDate : new Date(personToEdit.deathDate).toISOString().split('T')[0]) : '',
         gender: personToEdit.gender,
         photo: personToEdit.photo || '',
+        biography: personToEdit.biography || '',
+        hobbies: personToEdit.hobbies || '',
         qualities: personToEdit.qualities,
       };
     }
@@ -54,6 +57,8 @@ const AddPersonPanel = React.forwardRef<AddPersonPanelRef, AddPersonPanelProps>(
       deathDate: '',
       gender: undefined,
       photo: '',
+      biography: '',
+      hobbies: '',
       qualities: undefined,
     };
   });
@@ -247,6 +252,14 @@ const AddPersonPanel = React.forwardRef<AddPersonPanelRef, AddPersonPanelProps>(
     setQualities((prev) => ({ ...prev, [field]: value }));
   };
 
+  const formRef = useRef<HTMLFormElement>(null);
+
+  const handleFormSubmit = () => {
+    if (formRef.current) {
+      formRef.current.requestSubmit();
+    }
+  };
+
   return (
     <div 
       className="absolute right-0 top-0 h-full w-[min(50%,500px)] bg-white border-l border-gray-200 shadow-lg z-40 flex flex-col"
@@ -263,7 +276,7 @@ const AddPersonPanel = React.forwardRef<AddPersonPanelRef, AddPersonPanelProps>(
         </button>
       </div>
 
-      <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-6">
+      <form ref={formRef} onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-6">
         <div className="space-y-6">
           {/* Relationship Section - only show in add mode */}
           {persons.length > 0 && !isEditMode && (
@@ -380,6 +393,30 @@ const AddPersonPanel = React.forwardRef<AddPersonPanelRef, AddPersonPanelProps>(
             </div>
           </div>
 
+          {/* Biography Section */}
+          <div>
+            <h3 className="text-lg font-semibold text-gray-900 mb-3">Biography</h3>
+            <Textarea
+              label=""
+              value={formData.biography || ''}
+              onChange={(e) => handleChange('biography', e.target.value)}
+              placeholder="Tell us about this person..."
+              rows={4}
+            />
+          </div>
+
+          {/* Hobbies Section */}
+          <div>
+            <h3 className="text-lg font-semibold text-gray-900 mb-3">Hobbies</h3>
+            <Textarea
+              label=""
+              value={formData.hobbies || ''}
+              onChange={(e) => handleChange('hobbies', e.target.value)}
+              placeholder="List hobbies and interests..."
+              rows={3}
+            />
+          </div>
+
           {/* Qualities Section */}
           <div>
             <div className="flex items-center justify-between mb-3">
@@ -492,27 +529,30 @@ const AddPersonPanel = React.forwardRef<AddPersonPanelRef, AddPersonPanelProps>(
               </div>
             )}
           </div>
-
-          {/* Form Actions */}
-          <div className="flex gap-3 pt-4 border-t border-gray-200">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={onClose}
-              className="flex-1"
-            >
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              variant="primary"
-              className="flex-1"
-            >
-              {isEditMode ? 'Save Changes' : 'Add Person'}
-            </Button>
-          </div>
         </div>
       </form>
+
+      {/* Form Actions - Fixed at bottom */}
+      <div className="flex-shrink-0 p-6 border-t border-gray-200 bg-white">
+        <div className="flex gap-3">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={onClose}
+            className="flex-1"
+          >
+            Cancel
+          </Button>
+          <Button
+            type="button"
+            variant="primary"
+            onClick={handleFormSubmit}
+            className="flex-1"
+          >
+            {isEditMode ? 'Save Changes' : 'Add Person'}
+          </Button>
+        </div>
+      </div>
     </div>
   );
 });
