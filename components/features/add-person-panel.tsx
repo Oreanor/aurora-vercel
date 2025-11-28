@@ -535,24 +535,24 @@ const AddPersonPanel = React.forwardRef<AddPersonPanelRef, AddPersonPanelProps>(
       {/* Form Actions - Fixed at bottom */}
       <div className="flex-shrink-0 p-6 border-t border-gray-200 bg-white">
         <div className="flex gap-3">
-          <Button
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onClose}
+              className="flex-1"
+            >
+              Cancel
+            </Button>
+            <Button
             type="button"
-            variant="outline"
-            onClick={onClose}
-            className="flex-1"
-          >
-            Cancel
-          </Button>
-          <Button
-            type="button"
-            variant="primary"
+              variant="primary"
             onClick={handleFormSubmit}
-            className="flex-1"
-          >
-            {isEditMode ? 'Save Changes' : 'Add Person'}
-          </Button>
+              className="flex-1"
+            >
+              {isEditMode ? 'Save Changes' : 'Add Person'}
+            </Button>
+          </div>
         </div>
-      </div>
     </div>
   );
 });

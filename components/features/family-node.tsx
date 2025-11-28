@@ -26,10 +26,6 @@ export default function FamilyNode({ data, isConnectable = false }: FamilyNodePr
 
   const fullName = getPersonFullName(person);
 
-  const initial = person.firstName ? person.firstName.charAt(0).toUpperCase() : '';
-  const last = person.lastName ? person.lastName.charAt(0).toUpperCase() : '';
-  const initials = `${initial}${last}`;
-
 
   // Calculate person's role
   const role = useMemo(() => {
@@ -73,7 +69,7 @@ export default function FamilyNode({ data, isConnectable = false }: FamilyNodePr
     : null;
 
   return (
-    <div className={`relative flex flex-col items-center w-[200px] h-[100px]`}>
+    <div className={`relative flex flex-col items-center w-[200px] ${isMainPerson && !showDescendants ? 'h-[450px]' : 'h-[100px]'}`}>
       {/* Handle at top (for incoming connections) - at top of bush */}
       <Handle
         type="target"
@@ -82,26 +78,18 @@ export default function FamilyNode({ data, isConnectable = false }: FamilyNodePr
         className="w-2 h-2 top-[30px]"
       />
 
-      {/* Bushes (background and foreground) */}
-      <Image
-        src="/tree/bush_bg.svg"
-        alt=""
-        width={190}
-        height={190}
-        className={`absolute top-0 left-1/2 -translate-x-1/2 origin-center w-[190px] h-auto ${bushClasses}`}
-        unoptimized
-      />
+
       <Image
         src="/tree/bush.svg"
         alt=""
         width={180}
         height={180}
-        className="absolute top-0 left-1/2 -translate-x-1/2 scale-[1.32] w-[180px] h-auto"
+        className="absolute top-0 left-1/2 -translate-x-1/2 scale-[1.45] w-auto h-auto z-[2]"
         unoptimized
       />
 
       {/* Avatar */}
-      <div className={`avatar-container w-32 h-32 overflow-hidden rounded-[50%/50%] border-[#E1CD34] absolute z-10 left-1/2 -translate-x-1/2 -top-[30px] ${isSelected ? 'border-10' : 'border-4'}`}>
+      <div className={`avatar-container w-36 h-36 overflow-hidden rounded-[50%/50%] border-[#E1CD34] absolute z-10 left-1/2 -translate-x-1/2 -top-[40px] ${isSelected ? 'border-10' : 'border-4'}`}>
         {person.photo ? (
           <Image
             src={person.photo}
@@ -112,9 +100,12 @@ export default function FamilyNode({ data, isConnectable = false }: FamilyNodePr
           />
         ) : (
           <div
-            className={`w-full h-full ${getAvatarColor()} flex items-center justify-center text-4xl font-semibold text-white`}
+            className={`pt-4 w-full h-full ${getAvatarColor()} flex items-center justify-center`}
           >
-            {initials}
+            <svg width="74" height="76" viewBox="0 0 74 76" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-2/3 h-2/3">
+              <ellipse cx="37.5" cy="19.5" rx="16.5" ry="19.5" fill="white"/>
+              <path d="M56.6014 45C59.4424 45 62.0016 46.7171 63.0788 49.346L70.0444 66.346C71.9315 70.9517 68.5443 76 63.567 76H10.1299C5.2345 76 1.85105 71.1037 3.58218 66.5246L10.009 49.5246C11.0385 46.8016 13.6457 45 16.5568 45H56.6014Z" fill="white"/>
+            </svg>
           </div>
         )}
       </div>
@@ -143,18 +134,17 @@ export default function FamilyNode({ data, isConnectable = false }: FamilyNodePr
 
       {/* Tree trunk for main person - only in ancestors mode */}
       {isMainPerson && !showDescendants && (
-        <div className="absolute top-[0px] left-1/2 -translate-x-1/2 z-[1]">
+        <div className="absolute top-[100px] left-1/2 -translate-x-1/2 z-0 w-32">
           <Image
             src="/tree/trunk.svg"
             alt="Tree trunk"
-            width={256}
-            height={320}
-            className="w-64 h-80 object-contain"
+            width={128}
+            height={160}
+            className="w-[128px] h-[160px]"
             unoptimized
-          />
-        </div>
-      )}
+      />
     </div>
-  );
+  )}
+</div>
+);
 }
-

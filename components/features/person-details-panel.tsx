@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { Person, Relationship } from '@/types/family';
 import { Edit, Trash2 } from 'lucide-react';
 import { getPersonFullName, findAllAncestors } from '@/lib/utils';
+import { useDevice } from '@/contexts/device-context';
 import Button from '@/components/ui/button';
 
 interface PersonDetailsPanelProps {
@@ -30,6 +31,7 @@ export default function PersonDetailsPanel({
   relationships = []
 }: PersonDetailsPanelProps) {
   const router = useRouter();
+  const { isDesktop } = useDevice();
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [ancestorsToDelete, setAncestorsToDelete] = useState<Person[]>([]);
 
@@ -235,14 +237,16 @@ export default function PersonDetailsPanel({
           >
             Time Vault
           </Button>
-          <Button
-            type="button"
-            variant="outline"
-            onClick={handleMyStoryVideoClick}
-            className="flex-1"
-          >
-            My Story Video
-          </Button>
+          {isDesktop && (
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleMyStoryVideoClick}
+              className="flex-1"
+            >
+              My Story Video
+            </Button>
+          )}
         </div>
       </div>
 

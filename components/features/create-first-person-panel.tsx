@@ -299,24 +299,24 @@ export default function CreateFirstPersonPanel({ onClose, onSave }: CreateFirstP
       {/* Form Actions - Fixed at bottom */}
       <div className="flex-shrink-0 p-6 border-t border-gray-200 bg-white">
         <div className="flex gap-3">
-          <Button
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onClose}
+              className="flex-1"
+            >
+              Cancel
+            </Button>
+            <Button
             type="button"
-            variant="outline"
-            onClick={onClose}
-            className="flex-1"
-          >
-            Cancel
-          </Button>
-          <Button
-            type="button"
-            variant="primary"
+              variant="primary"
             onClick={handleFormSubmit}
-            className="flex-1"
-          >
-            Create Tree
-          </Button>
+              className="flex-1"
+            >
+              Create Tree
+            </Button>
+          </div>
         </div>
-      </div>
     </div>
   );
 }

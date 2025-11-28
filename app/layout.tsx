@@ -2,10 +2,8 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/layout/navbar";
-import AuthSessionProvider from "@/components/providers/session-provider";
-import { TreeProvider } from "@/contexts/tree-context";
+import AppProviders from "@/components/providers/app-providers";
 import ScrollToTop from "@/components/layout/scroll-to-top";
-import { Suspense } from "react";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -28,21 +26,17 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" data-scroll-behavior="smooth">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <ScrollToTop />
-        <AuthSessionProvider>
-          <Suspense fallback={<div>Loading...</div>}>
-            <TreeProvider>
-              <Navbar />
-              <main className="h-[calc(100vh-60px)] mt-15 overflow-y-auto">
-                {children}
-              </main>
-            </TreeProvider>
-          </Suspense>
-        </AuthSessionProvider>
+        <AppProviders>
+          <Navbar />
+          <main className="h-[calc(100vh-60px)] mt-15 overflow-y-auto">
+            {children}
+          </main>
+        </AppProviders>
       </body>
     </html>
   );
