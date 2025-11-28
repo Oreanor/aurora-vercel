@@ -9,6 +9,7 @@ interface DeviceContextType {
   isMobile: boolean;
   isTablet: boolean;
   isDesktop: boolean;
+  isRealMobile: boolean; // Based on User-Agent, not window size
   hasTouch: boolean;
   screenWidth: number;
   screenHeight: number;
@@ -85,6 +86,15 @@ function detectDeviceType(): DeviceType {
 }
 
 export function DeviceProvider({ children }: { children: ReactNode }) {
+  // Detect real mobile device based on User-Agent (stable, doesn't change with window resize)
+  const [isRealMobile, setIsRealMobile] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      const userAgent = navigator.userAgent || navigator.vendor || (window as any).opera;
+      return /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(userAgent.toLowerCase());
+    }
+    return false;
+  });
+
   const [deviceType, setDeviceType] = useState<DeviceType>(() => {
     if (typeof window !== 'undefined') {
       return detectDeviceType();
@@ -153,10 +163,11 @@ export function DeviceProvider({ children }: { children: ReactNode }) {
     isMobile: deviceType === 'mobile',
     isTablet: deviceType === 'tablet',
     isDesktop: deviceType === 'desktop',
+    isRealMobile,
     hasTouch,
     screenWidth,
     screenHeight,
-  }), [deviceType, hasTouch, screenWidth, screenHeight]);
+  }), [deviceType, isRealMobile, hasTouch, screenWidth, screenHeight]);
 
   return (
     <DeviceContext.Provider value={value}>

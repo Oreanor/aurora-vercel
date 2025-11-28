@@ -31,7 +31,7 @@ export default function PersonDetailsPanel({
   relationships = []
 }: PersonDetailsPanelProps) {
   const router = useRouter();
-  const { isDesktop } = useDevice();
+  const { isRealMobile } = useDevice();
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [ancestorsToDelete, setAncestorsToDelete] = useState<Person[]>([]);
 
@@ -237,7 +237,7 @@ export default function PersonDetailsPanel({
           >
             Time Vault
           </Button>
-          {isDesktop && (
+          {!isRealMobile && (
             <Button
               type="button"
               variant="outline"
