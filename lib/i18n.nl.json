@@ -1,0 +1,447 @@
+{
+  "meta": {
+    "title": "Aurora - Reis naar je familiegeschiedenis",
+    "description": "Ontdek het verleden van je voorouders via gesprekken met AI"
+  },
+  "common": {
+    "loading": "Laden...",
+    "connecting": "Verbinden...",
+    "redirecting": "Doorsturen...",
+    "close": "Sluiten",
+    "cancel": "Annuleren",
+    "delete": "Verwijderen",
+    "errorWithMessage": "Fout: {{message}}",
+    "send": "Versturen",
+    "hide": "Verbergen",
+    "show": "Tonen",
+    "signIn": "Inloggen",
+    "signUp": "Registreren",
+    "logOut": "Uitloggen",
+    "user": "Gebruiker",
+    "activeNow": "Nu actief",
+    "you": "Jij",
+    "searchPerson": "Zoek een persoon...",
+    "noPersonsFound": "Geen personen gevonden",
+    "select": "Selecteren...",
+    "createTree": "Boom maken",
+    "saveChanges": "Wijzigingen opslaan",
+    "addPerson": "Persoon toevoegen",
+    "language": "Taal",
+    "theme": "Thema",
+    "lightTheme": "Licht",
+    "darkTheme": "Donker",
+    "male": "Man",
+    "female": "Vrouw",
+    "other": "Anders"
+  },
+  "roles": {
+    "you": "Jij",
+    "father": "Vader",
+    "mother": "Moeder",
+    "grandfather": "Grootvader",
+    "grandmother": "Grootmoeder",
+    "greatGrandfather": "Overgrootvader",
+    "greatGrandmother": "Overgrootmoeder",
+    "greatGreatGrandfather": "Betovergrootvader",
+    "greatGreatGrandmother": "Betovergrootmoeder",
+    "greatAncestorMale": "{{count}}x overgrootvader",
+    "greatAncestorFemale": "{{count}}x overgrootmoeder"
+  },
+  "navbar": {
+    "logoAlt": "Aurora-logo",
+    "home": "Home",
+    "chatDemo": "Chatdemo",
+    "demoVideo": "Videodemo",
+    "features": "Functies",
+    "howTo": "Hoe werkt het",
+    "future": "Toekomst",
+    "tree": "Boom",
+    "graph": "Grafiek",
+    "connect": "Verbinden",
+    "myStory": "Mijn verhaal",
+    "selectTree": "Boom selecteren",
+    "treeFamilyLabel": "familie",
+    "ownSuffix": " (eigen)",
+    "userMenu": "Gebruikersmenu",
+    "toggleMobileMenu": "Mobiel menu openen",
+    "createTreeError": "Boom kon niet worden gemaakt. Probeer het opnieuw."
+  },
+  "footer": {
+    "rights": "© 2023-2026 Aurora. Alle rechten voorbehouden."
+  },
+  "auth": {
+    "welcomeBack": "Welkom terug",
+    "signInSubtitle": "Log in op je Aurora-account",
+    "emailAddress": "E-mailadres",
+    "emailPlaceholder": "Voer je e-mailadres in",
+    "sendingMagicLink": "Magic link wordt verzonden...",
+    "sendMagicLink": "Magic link verzenden",
+    "orContinueWith": "Of ga verder met",
+    "continueWithGoogle": "Doorgaan met Google",
+    "dontHaveAccount": "Heb je nog geen account?",
+    "dismissAndRetry": "Sluiten en opnieuw proberen",
+    "magicLinkSent": "Magic link is naar je e-mail gestuurd!",
+    "magicLinkError": "Magic link kon niet worden verzonden. Probeer het opnieuw.",
+    "errorTitle": "Inloggen mislukt",
+    "errorHint": "Probeer het opnieuw of gebruik een andere inlogmethode.",
+    "errors": {
+      "OAuthSignin": "Het inloggen via de OAuth-provider kon niet worden gestart.",
+      "OAuthCallback": "Fout tijdens het antwoord van de OAuth-provider.",
+      "OAuthCreateAccount": "Het account kon niet via de OAuth-provider worden aangemaakt.",
+      "EmailCreateAccount": "Het account kon niet per e-mail worden aangemaakt.",
+      "Callback": "Fout in de OAuth-callbackhandler.",
+      "OAuthAccountNotLinked": "Dit e-mailadres wordt al gebruikt met een andere inlogmethode. Gebruik dezelfde methode als eerder of een ander Google-account.",
+      "EmailSignin": "Fout bij het verzenden van de magic-link-mail.",
+      "CredentialsSignin": "Ongeldige inloggegevens.",
+      "SessionRequired": "Log in om door te gaan.",
+      "Default": "Er is een fout opgetreden tijdens het inloggen."
+    }
+  },
+  "connect": {
+    "signInRequired": "Log in om contact te maken met je familie.",
+    "treeRequired": "Selecteer een boom in de navigatie om een familielid te kiezen.",
+    "title": "Verbinden",
+    "description": "Chat, stem of video met je familie.",
+    "modeAriaLabel": "Verbindingsmodus",
+    "personSelectPlaceholder": "— Selecteer een familielid —",
+    "modes": {
+      "chat": "Chat",
+      "voice": "Stem",
+      "video": "Video"
+    },
+    "personSelectLabels": {
+      "chat": "Selecteer een familielid",
+      "voice": "Kies met wie je wilt praten",
+      "video": "Kies wie je wilt zien"
+    },
+    "voice": {
+      "headline": "Je staat op het punt om met iemand te praten die ertoe doet.",
+      "subline": "Start een spraakoproep om hun stem te horen en samen een moment te delen.",
+      "start": "Spraakoproep starten",
+      "secondaryChat": "Of doorgaan in de chat ->",
+      "empty": "Selecteer hierboven een familielid om een spraakoproep te starten.",
+      "waveformHelper": "Hier verschijnen de realtime-golfvorm en reacties",
+      "sessionReady": "Sessie klaar. Voice-backend komt binnenkort."
+    },
+    "video": {
+      "headline": "Zoals FaceTime, maar dan met herinneringen die tot leven komen.",
+      "subline": "Een levensechte avatar met subtiele expressies en vloeiende bewegingen - respectvol en persoonlijk, geen koude videogenerator.",
+      "start": "Video-oproep starten",
+      "secondaryVoice": "Alleen stem ->",
+      "secondaryChat": "Chat ->",
+      "empty": "Selecteer hierboven een familielid om een video-oproep te starten.",
+      "avatarComingSoon": "Levensechte AI-avatar (binnenkort beschikbaar)",
+      "activeHelper": "Hier verschijnen subtiele gezichtsuitdrukkingen en emotionele feedback",
+      "inactiveHelper": "Profielfoto - video verschijnt nadat je start of een bericht stuurt",
+      "sessionReady": "Sessie klaar. Video-avatar-backend komt binnenkort."
+    },
+    "sessionStartFailed": "Sessie kon niet worden gestart."
+  },
+  "chat": {
+    "selectPrompt": "Selecteer een familielid om te beginnen met chatten",
+    "noMessages": "Nog geen berichten. Begin het gesprek!",
+    "sendError": "Je bericht kon niet worden verwerkt. Probeer het opnieuw.",
+    "typePlaceholder": "Typ je bericht...",
+    "orTypeInstead": "Of typ in plaats daarvan een bericht:",
+    "compactEmpty": "Nog geen berichten. Typ hieronder een bericht."
+  },
+  "familyPage": {
+    "title": "Familie",
+    "description": "Verken je stamboom en connecties."
+  },
+  "storiesPage": {
+    "title": "Mijn verhalen",
+    "description": "Ontdek en deel familieverhalen."
+  },
+  "treePage": {
+    "selectTree": "Selecteer een boom in de navigatie",
+    "loadError": "Boomgegevens konden niet worden geladen"
+  },
+  "graphPage": {
+    "title": "Schema (grafiek)",
+    "description": "Boven -> beneden = generaties. Verticale lijnen = ouder -> kind. Roze = vrouwelijk, blauw = mannelijk. Klik op een knoop om details te openen."
+  },
+  "familyGraph": {
+    "empty": "Er staan nog geen personen in deze boom. Voeg personen toe in de boomweergave."
+  },
+  "noTreesModal": {
+    "title": "Welkom bij Aurora!",
+    "description": "Je hebt nog geen stambomen. Laten we de eerste maken!"
+  },
+  "rootUserDialog": {
+    "title": "Rootgebruiker instellen",
+    "description": "Selecteer een gebruiker ten opzichte van wie de boom opnieuw moet worden opgebouwd:",
+    "rebuildTree": "Boom opnieuw opbouwen"
+  },
+  "home": {
+    "heroTitle": "Praat met voorouders die je nooit hebt gekend dankzij AI",
+    "heroIntro": "Stel je voor dat je opnieuw verhalen kunt delen met je overgrootmoeder, je leven ziet veranderen in een prachtige visuele reis en waardevolle familieherinneringen voor altijd bewaart. Aurora brengt families dichter bij elkaar over generaties heen met de warmte van AI.",
+    "heroQuote": "Wat als je je familie altijd dichtbij kon houden?",
+    "heroBody": "Aurora creëert een warme digitale ruimte voor je familie. Bouw liefdevolle AI-metgezellen op basis van je dierbaren, deel verhalen en herinneringen en geniet daarna van hartverwarmende gesprekken die verrassend echt aanvoelen. Verander levensverhalen in mooie visuele vertellingen en bewaar je familieschatten voor toekomstige generaties.",
+    "primaryCta": "Begin je reis",
+    "demoTitle": "Begin gratis met je eerste hartverwarmende chat",
+    "demoDescription": "AI-gegenereerde demo van een gesprek met een voorouder: grootmoeder Mary uit de familiegeschiedenis van de jaren 20",
+    "featuresTitle": "Aurora-functies: voel je weer verbonden met je familie",
+    "featuresDescription": "Ervaar warme familiebanden met hulp van AI, veel verder dan een traditioneel stamboomonderzoek. Aurora creëert gesprekken met geliefde familieleden, bewaart herinneringen via visuele verhalen en helpt je dichter bij je familie-erfgoed te komen.",
+    "howToTitle": "Hoe je warme familiebanden creëert",
+    "howToDescription": "Hartelijke gesprekken met geliefde familieleden maken is eenvoudiger dan je denkt. Dit is een eenvoudig proces in 3 stappen dat herinneringen omzet in een warme digitale ervaring.",
+    "futureTitle": "De toekomst van familiegeschiedenis",
+    "futureDescription": "We blijven Aurora verbeteren om je nog meeslependere manieren te geven om contact te maken met je voorouders. Dit komt eraan:"
+  },
+  "demoVideo": {
+    "title": "Zie Aurora in actie",
+    "description": "Bekijk het genealogische netwerk en video-oproepen: maak contact met je familie over generaties heen.",
+    "iframeTitle": "Aurora-demo: genealogisch netwerk en video-oproepen",
+    "videoUnsupported": "Je browser ondersteunt de videotag niet."
+  },
+  "chatDemo": {
+    "name": "Grootmoeder Mary",
+    "years": "1923-1998",
+    "message1": "Hallo lieverd! Ik heb zo lang gewacht om je te ontmoeten. Je moeder vertelde me zoveel over je in haar brieven. Ik wou dat ik je had kunnen vasthouden toen je klein was.",
+    "message2": "Oma, ik heb je stem nooit kunnen horen of je verhalen kunnen leren kennen. Hoe was het om op te groeien tijdens de Grote Depressie? Wat wil je dat ik over onze familie weet?",
+    "message3": "Ach lieverd, het waren zware tijden, maar we vonden vreugde in kleine dingen. Ik wil dat je weet dat onze familie altijd sterk is geweest. We hielpen onze buren, gingen nooit boos slapen en maakten altijd plaats aan tafel voor nog iemand. Die kracht leeft ook in jou.",
+    "time1": "14:34",
+    "time2": "14:35",
+    "time3": "14:36",
+    "placeholder": "Typ je bericht...",
+    "cta": "Start je eigen familiechat"
+  },
+  "familyTree": {
+    "treeTrunkAlt": "Boomstam"
+  },
+  "familyTreeToolbar": {
+    "addNewPersonAria": "Nieuwe persoon toevoegen",
+    "addPersonTitle": "Persoon toevoegen",
+    "toggleTreeAria": "Boom wisselen",
+    "toggleTreeTitle": "Modus voor voorouders/afstammelingen wisselen",
+    "toggleTreeDisabledTitle": "Niet beschikbaar tijdens het bekijken van een tak",
+    "setRootUserAria": "Rootgebruiker instellen",
+    "setRootTitle": "Als root instellen",
+    "viewingDescendants": "Afstammelingen van {{name}} worden weergegeven"
+  },
+  "marketing": {
+    "featureStatuses": {
+      "available": "Beschikbaar",
+      "newFeature": "Nieuwe functie",
+      "alwaysOn": "Altijd actief",
+      "q42025": "Q4 2025"
+    },
+    "features": {
+      "items": [
+        {
+          "icon": "💬",
+          "status": "Beschikbaar",
+          "title": "Hartverwarmende gesprekken",
+          "description": "Praat met je dierbaren alsof ze naast je zitten. Onze AI vangt hun stem, persoonlijkheid en wijsheid op een zorgvuldige manier.",
+          "features": ["Natuurlijke gespreksstroom", "Persoonlijke reacties op basis van hun leven", "Spraaksynthese komt binnenkort"],
+          "iconBgColor": "bg-blue-100"
+        },
+        {
+          "icon": "🧠",
+          "status": "Beschikbaar",
+          "title": "AI-persoonlijkheidstraining",
+          "description": "Bouw gedetailleerde persoonlijkheidsprofielen op door verhalen, foto's en herinneringen te delen. Hoe meer je deelt, hoe realistischer de gesprekken worden.",
+          "features": ["Systeem voor het verzamelen van verhalen", "Kaart van persoonlijkheidskenmerken", "Integratie van herinneringen"],
+          "iconBgColor": "bg-purple-100"
+        },
+        {
+          "icon": "🎬",
+          "status": "Nieuwe functie",
+          "title": "My Story visuele vertellingen",
+          "description": "Verander levensverhalen in filmische visuele ervaringen. AI maakt prachtige scènes met vertelling op basis van je herinneringen.",
+          "features": ["AI-verbetering van verhalen", "Scène-voor-scène generatie", "Videocompilatie met vertelling"],
+          "iconBgColor": "bg-orange-100"
+        },
+        {
+          "icon": "⏰",
+          "status": "Nieuwe functie",
+          "title": "Tijdcapsuleberichten",
+          "description": "Neem videoberichten op voor de toekomst. Laat wijsheid achter voor nog niet geboren kinderen of berichten voor speciale data.",
+          "features": ["Opslag van videoberichten", "Tijdgestuurde bezorging", "Toekomstige verrassingen plannen"],
+          "iconBgColor": "bg-yellow-100"
+        },
+        {
+          "icon": "💾",
+          "status": "Nieuwe functie",
+          "title": "Herinneringskluis",
+          "description": "Bewaar familieherinneringen voor altijd. Sla audio, foto's, video's en geschreven verhalen op in je veilige digitale kluis.",
+          "features": ["Audio- en video-opslag", "Fotocollecties", "Geschreven herinneringen en documenten"],
+          "iconBgColor": "bg-green-100"
+        },
+        {
+          "icon": "🔐",
+          "status": "Altijd actief",
+          "title": "Privé en veilig",
+          "description": "Je familieherinneringen zijn kostbaar. Wij beschermen ze met beveiliging op bankniveau en jij houdt volledige controle over je gegevens.",
+          "features": ["End-to-end encryptie", "Privé familiegesprekken", "Jij bent eigenaar van je data"],
+          "iconBgColor": "bg-red-100"
+        }
+      ]
+    },
+    "howTo": {
+      "items": [
+        {
+          "stepNumber": 1,
+          "title": "Deel hun mooie verhaal",
+          "description": "Vertel ons over je dierbare familielid: hun persoonlijkheid, favoriete uitspraken, levenservaringen en de herinneringen die je bewaart. Zelfs kleine details maken het gesprek warmer en echter.",
+          "features": ["Deel herinneringen en familieverhalen", "Beschrijf hun persoonlijkheid en eigenaardigheden", "Voeg foto's en persoonlijke details toe"]
+        },
+        {
+          "stepNumber": 2,
+          "title": "AI leert met zorg",
+          "description": "Onze zorgzame AI bestudeert alles wat je hebt gedeeld om de persoonlijkheid, spraakpatronen en kijk op de wereld van je familielid te begrijpen. Zo leert de AI hoe die persoon zou kunnen reageren.",
+          "features": ["AI-persoonlijkheidsmodellering", "Herkenning van spraakpatronen", "Integratie van historische context"]
+        },
+        {
+          "stepNumber": 3,
+          "title": "Begin je gesprekken!",
+          "description": "Zodra de AI-metgezel klaar is, kun je warme gesprekken voeren. Vraag naar het verleden, vraag om advies of geniet gewoon van het contact. Elk gesprek helpt de AI nog beter te worden.",
+          "features": ["Natuurlijke gespreksinterface", "Vragen over hun verleden", "Wijsheid en familieadvies"]
+        }
+      ]
+    },
+    "future": {
+      "items": [
+        {
+          "icon": "🎥",
+          "status": "Q4 2025",
+          "title": "AI-videogesprekken",
+          "description": "Zie hoe je voorouders tot leven komen met AI-gegenereerde videoantwoorden. Bekijk hun gezichtsuitdrukkingen en gebaren terwijl ze hun verhalen delen.",
+          "features": ["Levensechte videogeneratie", "Emotiebewuste reacties", "Historische nauwkeurigheid"],
+          "iconBgColor": "bg-red-100"
+        },
+        {
+          "icon": "🎤",
+          "status": "Q4 2025",
+          "title": "Stemreplicatie",
+          "description": "Hoor je voorouders spreken met hun authentieke stem. Upload audiovoorbeelden om gepersonaliseerde stemmodellen te maken.",
+          "features": ["Aangepast stemklonen", "Behoud van accent", "Passende emotionele toon"],
+          "iconBgColor": "bg-purple-100"
+        },
+        {
+          "icon": "🌳",
+          "status": "Q4 2025",
+          "title": "Interactieve stamboom",
+          "description": "Ontdek je familiegeschiedenis via een meeslepende interactieve stamboom. Klik op een voorouder en start direct een gesprek.",
+          "features": ["Visuele familienavigatie", "Integratie van tijdlijn", "Relatiekaart"],
+          "iconBgColor": "bg-green-100"
+        }
+      ]
+    }
+  },
+  "story": {
+    "signInRequired": "Log in om je verhaal te maken.",
+    "title": "Mijn verhaal",
+    "heroDescription": "Verander een levensverhaal in een ingesproken video. Maak een digitaal erfgoed voor toekomstige generaties.",
+    "heroHint": "Je vult niet alleen een formulier in, je bewaart een stem.",
+    "sectionStoryTitle": "Jouw verhaal",
+    "sectionStoryDescription": "Deel een levensverhaal of biografie. Wij zetten het om in scènes en voice-over.",
+    "storyTitleLabel": "Titel van het verhaal (optioneel)",
+    "storyTitlePlaceholder": "Bijvoorbeeld, Oma's jeugd",
+    "storySubjectLabel": "Van wie is dit verhaal? (optioneel)",
+    "storySubjectPlaceholder": "Naam van de persoon over wie dit verhaal gaat",
+    "storyBodyLabel": "Levensverhaal / biografie",
+    "storyBodyPlaceholder": "Schrijf het verhaal dat je wilt bewaren: herinneringen, belangrijke momenten en alles wat toekomstige generaties zouden moeten weten...",
+    "creating": "Bezig met maken...",
+    "createButton": "Mijn verhaal maken",
+    "createError": "Het verhaal kon niet worden gemaakt.",
+    "loadStatusError": "Status kon niet worden geladen",
+    "sectionScenesTitle": "Voorvertoning van scènes",
+    "sectionScenesDescription": "De belangrijkste momenten uit je verhaal. Scènes verschijnen zodra de pipeline ze heeft gegenereerd.",
+    "sceneLabel": "Scène {{index}}",
+    "scenesHelper": "De voorvertoning van scènes verschijnt hier zodra de pipeline ze heeft gegenereerd.",
+    "sectionProgressTitle": "Videogeneratie",
+    "sectionProgressDescription": "Je ingesproken video wordt gemaakt. Dit kan enkele minuten duren.",
+    "statusLabel": "Status: {{status}}{{progress}}",
+    "sectionVideoTitle": "Jouw video",
+    "sectionVideoDescription": "Zie hoe je verhaal tot leven komt met voice-over en scènes.",
+    "videoPending": "Je video verschijnt hier zodra de generatie is voltooid.",
+    "statuses": {
+      "queued": "In wachtrij",
+      "processing": "Bezig met verwerken",
+      "ready": "Klaar",
+      "failed": "Mislukt"
+    }
+  },
+  "personForm": {
+    "editPerson": "Persoon bewerken",
+    "addNewPerson": "Nieuwe persoon toevoegen",
+    "addYourself": "Jezelf toevoegen",
+    "relationship": "Relatie *",
+    "relationshipIs": "Is *",
+    "relationshipOf": "Van *",
+    "selectRelationshipFirst": "Selecteer eerst de relatie",
+    "basicInformation": "Basisinformatie",
+    "firstName": "Voornaam *",
+    "lastName": "Achternaam *",
+    "middleName": "Tweede naam",
+    "gender": "Geslacht",
+    "selectGender": "Selecteer geslacht",
+    "birthDate": "Geboortedatum",
+    "deathDate": "Overlijdensdatum",
+    "dateOfBirth": "Geboortedatum",
+    "dateOfDeath": "Overlijdensdatum",
+    "photoUrl": "Foto-URL",
+    "photoUrlPlaceholder": "https://example.com/photo.jpg",
+    "biography": "Biografie",
+    "biographyPlaceholder": "Vertel iets over deze persoon...",
+    "biographySelfPlaceholder": "Vertel iets over jezelf...",
+    "hobbies": "Hobby's",
+    "hobbiesPlaceholder": "Lijst hobby's en interesses op...",
+    "hobbiesSelfPlaceholder": "Lijst je hobby's en interesses op...",
+    "qualities": "Eigenschappen",
+    "openness": "Openheid (0-100)",
+    "conscientiousness": "Zorgvuldigheid (0-100)",
+    "extraversion": "Extraversie (0-100)",
+    "agreeableness": "Vriendelijkheid (0-100)",
+    "neuroticism": "Neuroticisme (0-100)",
+    "formality": "Formaliteit (0-100)",
+    "religion": "Religie",
+    "religiosity": "Religiositeit (0-100)",
+    "passions": "Passies",
+    "senseOfHumor": "Gevoel voor humor",
+    "positivity": "Positiviteit (0-100)",
+    "relationshipOptions": {
+      "father": "Vader",
+      "mother": "Moeder",
+      "son": "Zoon",
+      "daughter": "Dochter",
+      "spouse": "Partner"
+    },
+    "validation": {
+      "fillRequiredNames": "Vul alsjeblieft de voornaam en achternaam in",
+      "selectRelationshipAndPerson": "Selecteer alsjeblieft een relatie en een gekoppelde persoon",
+      "selectPerson": "Selecteer alsjeblieft een persoon",
+      "selectRelationshipTypeAndPerson": "Selecteer alsjeblieft een relatietype en een persoon",
+      "selectRelationshipType": "Selecteer alsjeblieft een relatietype (vader, moeder, zoon, dochter of partner)",
+      "tooManyParents": "Deze persoon heeft al {{count}} ouder(s). Er kunnen geen extra ouders worden toegevoegd.",
+      "cannotAddChildrenToRoot": "Er kunnen geen kinderen aan de rootpersoon ({{name}}) worden toegevoegd. De rootpersoon is de hoofdpersoon van de boom en kan geen kinderen hebben."
+    }
+  },
+  "personDetails": {
+    "basicInformation": "Basisinformatie",
+    "parents": "Ouders",
+    "biography": "Biografie",
+    "hobbies": "Hobby's",
+    "qualities": "Eigenschappen",
+    "photo": "Foto",
+    "dateOfBirth": "Geboortedatum",
+    "dateOfDeath": "Overlijdensdatum",
+    "gender": "Geslacht",
+    "openness": "Openheid",
+    "conscientiousness": "Zorgvuldigheid",
+    "extraversion": "Extraversie",
+    "agreeableness": "Vriendelijkheid",
+    "neuroticism": "Neuroticisme",
+    "religion": "Religie",
+    "passions": "Passies",
+    "chat": "Chat",
+    "voiceCall": "Spraakoproep",
+    "videoCall": "Video-oproep",
+    "editAria": "Bewerken",
+    "deleteAria": "Verwijderen",
+    "confirmDeletion": "Verwijderen bevestigen",
+    "confirmDeletionMessage": "Weet je zeker dat je {{name}} wilt verwijderen?",
+    "deleteAncestorsWarning": "Waarschuwing: de volgende voorouders worden ook verwijderd:"
+  }
+}

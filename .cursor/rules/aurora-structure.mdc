@@ -1,0 +1,16 @@
+---
+description: "Aurora: project structure, data, API, types"
+globs:
+  - "**/*.{ts,tsx}"
+alwaysApply: true
+rules:
+  - "Stack: Next.js 15 (App Router, Turbopack), React 19, Tailwind 4, shadcn/ui (new-york), Prisma (SQLite), NextAuth, @xyflow/react (trees)."
+  - "App routes only under app/ (page.tsx, layout.tsx). API under app/api/.../route.ts."
+  - "Components: components/ui (base), components/layout (navbar, footer, section-header), components/features (family-tree, family-node, chat, panels), components/providers (SessionProvider, AppProviders)."
+  - "Domain types (Person, Relationship, FamilyTree, FamilyTreeData, TreeAccess) in types/family.ts. Module augmentations (e.g. next-auth Session) in app/types.ts. API-specific types (TreeInfo, TreesResponse) may live in lib/api/... next to the functions."
+  - "Data access: call APIs only from lib/ (e.g. lib/api/trees.ts), not from UI. In components use lib functions, never fetch directly. Caching (React Query/SWR) not yet used in the project."
+  - "Utils and helpers: lib/utils.ts (cn, Person/Relationship helpers), lib/utils/tree-format.ts, lib/prisma.ts. Mocks: lib/mock-family-data.ts."
+  - "Aliases: @/components, @/lib, @/lib/utils, @/components/ui, @/hooks (create hooks/ when needed). Imports only via @/, no long relative paths."
+  - "Trees: data via /api/trees and /api/trees/[id]; temporary in-memory storage (global.userCreatedTrees) until replaced by DB. Types from @/types/family and lib/api/trees."
+  - "Config: tailwind.config.ts at root; styles in app/globals.css (Tailwind 4: @import \"tailwindcss\", @theme inline, CSS variables). components.json: shadcn (style: new-york, baseColor: neutral)."
+  - "For new UI variants (variant/size) use cva (class-variance-authority); existing components without cva can be migrated gradually."

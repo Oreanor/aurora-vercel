@@ -1,0 +1,319 @@
+# Aurora Frontend — API contract for backend (OpenAPI 3.0)
+# Use for: codegen, Postman/Insomnia import, contract tests, mock servers.
+# Canonical human-readable doc: docs/BACKEND-API.md
+
+openapi: 3.0.3
+info:
+  title: Aurora Backend API
+  description: Contract the frontend expects. Implement these paths when using NEXT_PUBLIC_API_URL.
+  version: 1.0.0
+
+servers:
+  - url: /
+    description: Same-origin or your backend base URL
+
+paths:
+  /api/trees:
+    get:
+      summary: List trees for a user
+      operationId: getTrees
+      parameters:
+        - name: email
+          in: query
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/TreesResponse" }
+        "400":
+          description: Missing email
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+    post:
+      summary: Create tree
+      operationId: createTree
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CreateTreeRequest" }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/TreeInfo" }
+        "400":
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+
+  /api/trees/{id}:
+    get:
+      summary: Get one tree
+      operationId: getTree
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/FamilyTree" }
+        "404":
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+    put:
+      summary: Update tree
+      operationId: updateTree
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/UpdateTreeRequest" }
+      responses:
+        "200":
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/FamilyTree" }
+        "400":
+        "404":
+
+  /api/chat:
+    post:
+      summary: Chat with AI ancestor
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [message, person, role]
+              properties:
+                message: { type: string }
+                person: { $ref: "#/components/schemas/Person" }
+                role: { type: string }
+      responses:
+        "200":
+          content:
+            application/json:
+              schema: { type: object; properties: { reply: { type: string } } }
+        "400":
+
+  /api/voice/session:
+    post:
+      summary: Start voice call session
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [person, role]
+              properties:
+                person: { $ref: "#/components/schemas/Person" }
+                role: { type: string }
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  sessionId: { type: string }
+                  wsUrl: { type: string }
+                  message: { type: string }
+
+  /api/video/session:
+    post:
+      summary: Start video call session
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [person, role]
+              properties:
+                person: { $ref: "#/components/schemas/Person" }
+                role: { type: string }
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  sessionId: { type: string }
+                  streamUrl: { type: string }
+                  wsUrl: { type: string }
+                  message: { type: string }
+
+  /api/story:
+    post:
+      summary: Create story (cinematic pipeline)
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [biography]
+              properties:
+                title: { type: string }
+                subjectName: { type: string }
+                biography: { type: string }
+                personId: { type: string }
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  storyId: { type: string }
+                  status: { type: string; enum: [queued, processing, ready] }
+                  message: { type: string }
+        "400":
+
+  /api/story/{id}:
+    get:
+      summary: Get story status
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  storyId: { type: string }
+                  status: { type: string; enum: [queued, processing, ready, failed] }
+                  progress: { type: number }
+                  scenes: { type: array; items: { $ref: "#/components/schemas/ScenePreview" } }
+                  videoUrl: { type: string }
+                  error: { type: string }
+                  createdAt: { type: string }
+                  updatedAt: { type: string }
+        "404":
+
+components:
+  schemas:
+    Error:
+      type: object
+      properties:
+        error: { type: string }
+
+    TreeInfo:
+      type: object
+      properties:
+        id: { type: string }
+        name: { type: string }
+        role: { type: string; enum: [owner, editor, viewer] }
+        createdAt: { type: string }
+        updatedAt: { type: string }
+
+    TreesResponse:
+      type: object
+      required: [trees, count]
+      properties:
+        trees: { type: array; items: { $ref: "#/components/schemas/TreeInfo" } }
+        count: { type: integer }
+
+    CreateTreeRequest:
+      type: object
+      required: [email, treeData]
+      properties:
+        email: { type: string }
+        treeData:
+          type: object
+          properties:
+            data: { $ref: "#/components/schemas/FamilyTreeData" }
+
+    UpdateTreeRequest:
+      type: object
+      properties:
+        treeData:
+          type: object
+          properties:
+            data: { $ref: "#/components/schemas/FamilyTreeData" }
+
+    Person:
+      type: object
+      properties:
+        id: { type: string }
+        firstName: { type: string }
+        lastName: { type: string }
+        middleName: { type: string }
+        birthDate: { type: string }
+        deathDate: { type: string }
+        gender: { type: string; enum: [male, female, other] }
+        photo: { type: string }
+        email: { type: string }
+        biography: { type: string }
+        hobbies: { type: string }
+        qualities: { $ref: "#/components/schemas/IQualities" }
+
+    IQualities:
+      type: object
+      properties:
+        openness: { type: number }
+        conscientiousness: { type: number }
+        extraversion: { type: number }
+        agreeableness: { type: number }
+        neuroticism: { type: number }
+        formality: { type: number }
+        religion: { type: string }
+        religionScale: { type: number }
+        passions: { type: string }
+        senseOfHumor: { type: string }
+        positivity: { type: number }
+
+    Relationship:
+      type: object
+      properties:
+        id: { type: string }
+        parentId: { type: string }
+        childId: { type: string }
+
+    FamilyTreeData:
+      type: object
+      properties:
+        persons: { type: array; items: { $ref: "#/components/schemas/Person" } }
+        relationships: { type: array; items: { $ref: "#/components/schemas/Relationship" } }
+
+    TreeAccess:
+      type: object
+      properties:
+        owner: { type: array; items: { type: string } }
+        editor: { type: array; items: { type: string } }
+        viewer: { type: array; items: { type: string } }
+
+    FamilyTree:
+      type: object
+      properties:
+        id: { type: string }
+        name: { type: string }
+        data: { $ref: "#/components/schemas/FamilyTreeData" }
+        access: { $ref: "#/components/schemas/TreeAccess" }
+        createdAt: { type: string }
+        updatedAt: { type: string }
+
+    ScenePreview:
+      type: object
+      properties:
+        id: { type: string }
+        title: { type: string }
+        thumbnailUrl: { type: string }
+        order: { type: integer }

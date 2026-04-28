@@ -1,0 +1,25 @@
+---
+description: "Project rules for Next.js + Tailwind + shadcn/ui"
+globs:
+  - "**/*.{ts,tsx}"
+alwaysApply: true
+rules:
+  - "Use App Router (/app), not pages/"
+  - "Keep components in components/ui, components/layout, components/features"
+  - "Put types in a single types.ts per entity or under /types"
+  - "Style with TailwindCSS only; no *.css, *.scss, styled-components, emotion"
+  - "Use cva (class-variance-authority) for component variants"
+  - "Use shadcn/ui only; Radix only via shadcn/ui"
+  - "Imports via @/, no ../../../"
+  - "Import order: React/Next → external packages → internal (@/)"
+  - "Always TypeScript; props via a Props interface"
+  - "API calls in /lib or /services, not in UI components"
+  - "Do not use fetch directly in components"
+  - "For data caching use React Query or SWR"
+  - "Branches: feature/* and fix/*"
+  - "Commits: feat: ..., fix: ..."
+  - "ESLint + Prettier required"
+  - "Icons: lucide-react"
+  - "Keep tailwind.config.ts, eslint, tsconfig at project root"
+  - "Comments, JSDoc, and in-code documentation must be in English (international project)"
+---

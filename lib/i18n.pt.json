@@ -1,0 +1,447 @@
+{
+  "meta": {
+    "title": "Aurora - Jornada pela história da sua família",
+    "description": "Explore o passado dos seus ancestrais com conversas alimentadas por IA"
+  },
+  "common": {
+    "loading": "Carregando...",
+    "connecting": "Conectando...",
+    "redirecting": "Redirecionando...",
+    "close": "Fechar",
+    "cancel": "Cancelar",
+    "delete": "Excluir",
+    "errorWithMessage": "Erro: {{message}}",
+    "send": "Enviar",
+    "hide": "Ocultar",
+    "show": "Mostrar",
+    "signIn": "Entrar",
+    "signUp": "Cadastrar-se",
+    "logOut": "Sair",
+    "user": "Usuário",
+    "activeNow": "Ativo agora",
+    "you": "Você",
+    "searchPerson": "Buscar uma pessoa...",
+    "noPersonsFound": "Nenhuma pessoa encontrada",
+    "select": "Selecionar...",
+    "createTree": "Criar árvore",
+    "saveChanges": "Salvar alterações",
+    "addPerson": "Adicionar pessoa",
+    "language": "Idioma",
+    "theme": "Tema",
+    "lightTheme": "Claro",
+    "darkTheme": "Escuro",
+    "male": "Masculino",
+    "female": "Feminino",
+    "other": "Outro"
+  },
+  "roles": {
+    "you": "Você",
+    "father": "Pai",
+    "mother": "Mãe",
+    "grandfather": "Avô",
+    "grandmother": "Avó",
+    "greatGrandfather": "Bisavô",
+    "greatGrandmother": "Bisavó",
+    "greatGreatGrandfather": "Tataravô",
+    "greatGreatGrandmother": "Tataravó",
+    "greatAncestorMale": "{{count}}x bisavô",
+    "greatAncestorFemale": "{{count}}x bisavó"
+  },
+  "navbar": {
+    "logoAlt": "Logo da Aurora",
+    "home": "Início",
+    "chatDemo": "Demo do chat",
+    "demoVideo": "Demo em vídeo",
+    "features": "Recursos",
+    "howTo": "Como funciona",
+    "future": "Futuro",
+    "tree": "Árvore",
+    "graph": "Grafo",
+    "connect": "Conectar",
+    "myStory": "Minha história",
+    "selectTree": "Selecionar árvore",
+    "treeFamilyLabel": "família",
+    "ownSuffix": " (própria)",
+    "userMenu": "Menu do usuário",
+    "toggleMobileMenu": "Abrir menu móvel",
+    "createTreeError": "Não foi possível criar a árvore. Tente novamente."
+  },
+  "footer": {
+    "rights": "© 2023-2026 Aurora. Todos os direitos reservados."
+  },
+  "auth": {
+    "welcomeBack": "Bem-vindo de volta",
+    "signInSubtitle": "Entre na sua conta Aurora",
+    "emailAddress": "Endereço de e-mail",
+    "emailPlaceholder": "Digite seu e-mail",
+    "sendingMagicLink": "Enviando magic link...",
+    "sendMagicLink": "Enviar magic link",
+    "orContinueWith": "Ou continuar com",
+    "continueWithGoogle": "Continuar com Google",
+    "dontHaveAccount": "Não tem uma conta?",
+    "dismissAndRetry": "Fechar e tentar novamente",
+    "magicLinkSent": "Magic link enviado para o seu e-mail!",
+    "magicLinkError": "Não foi possível enviar o magic link. Tente novamente.",
+    "errorTitle": "Não foi possível entrar",
+    "errorHint": "Tente novamente ou use outro método de acesso.",
+    "errors": {
+      "OAuthSignin": "Não foi possível iniciar o login com o provedor OAuth.",
+      "OAuthCallback": "Erro durante a resposta do provedor OAuth.",
+      "OAuthCreateAccount": "Não foi possível criar a conta com o provedor OAuth.",
+      "EmailCreateAccount": "Não foi possível criar a conta por e-mail.",
+      "Callback": "Erro no manipulador de callback do OAuth.",
+      "OAuthAccountNotLinked": "Este e-mail já é usado com outro método de login. Tente o mesmo método usado antes ou utilize outra conta do Google.",
+      "EmailSignin": "Erro ao enviar o e-mail com o magic link.",
+      "CredentialsSignin": "Credenciais inválidas.",
+      "SessionRequired": "Faça login para continuar.",
+      "Default": "Ocorreu um erro durante o login."
+    }
+  },
+  "connect": {
+    "signInRequired": "Entre para se conectar com sua família.",
+    "treeRequired": "Selecione uma árvore na navegação para escolher um familiar.",
+    "title": "Conectar",
+    "description": "Chat, voz ou vídeo com sua família.",
+    "modeAriaLabel": "Modo de conexão",
+    "personSelectPlaceholder": "— Selecione um familiar —",
+    "modes": {
+      "chat": "Chat",
+      "voice": "Voz",
+      "video": "Vídeo"
+    },
+    "personSelectLabels": {
+      "chat": "Selecione um familiar",
+      "voice": "Escolha com quem você quer falar",
+      "video": "Escolha quem você quer ver"
+    },
+    "voice": {
+      "headline": "Você está prestes a falar com alguém que realmente importa.",
+      "subline": "Inicie uma chamada de voz para ouvir a voz dessa pessoa e compartilhar esse momento.",
+      "start": "Iniciar chamada de voz",
+      "secondaryChat": "Ou continuar no chat ->",
+      "empty": "Selecione um familiar acima para iniciar uma chamada de voz.",
+      "waveformHelper": "A forma de onda em tempo real e as reações aparecerão aqui",
+      "sessionReady": "Sessão pronta. O backend de voz chegará em breve."
+    },
+    "video": {
+      "headline": "Como um FaceTime em que a memória ganha vida.",
+      "subline": "Um avatar realista com expressões sutis e movimento suave - respeitoso e pessoal, não um gerador de vídeo frio.",
+      "start": "Iniciar chamada de vídeo",
+      "secondaryVoice": "Só voz ->",
+      "secondaryChat": "Chat ->",
+      "empty": "Selecione um familiar acima para iniciar uma chamada de vídeo.",
+      "avatarComingSoon": "Avatar de IA realista (em breve)",
+      "activeHelper": "As expressões faciais sutis e o retorno emocional aparecerão aqui",
+      "inactiveHelper": "Foto do perfil - o vídeo aparecerá depois que você iniciar ou enviar uma mensagem",
+      "sessionReady": "Sessão pronta. O backend do avatar de vídeo chegará em breve."
+    },
+    "sessionStartFailed": "Não foi possível iniciar a sessão."
+  },
+  "chat": {
+    "selectPrompt": "Selecione um familiar para começar a conversar",
+    "noMessages": "Ainda não há mensagens. Comece a conversa!",
+    "sendError": "Não foi possível processar sua mensagem. Tente novamente.",
+    "typePlaceholder": "Digite sua mensagem...",
+    "orTypeInstead": "Ou escreva uma mensagem:",
+    "compactEmpty": "Ainda não há mensagens. Escreva uma abaixo."
+  },
+  "familyPage": {
+    "title": "Família",
+    "description": "Explore sua árvore genealógica e conexões."
+  },
+  "storiesPage": {
+    "title": "Minhas histórias",
+    "description": "Descubra e compartilhe histórias da sua família."
+  },
+  "treePage": {
+    "selectTree": "Selecione uma árvore na navegação",
+    "loadError": "Não foi possível carregar os dados da árvore"
+  },
+  "graphPage": {
+    "title": "Esquema (grafo)",
+    "description": "Topo -> base = gerações. Linhas verticais = pai/mãe -> filho. Rosa = feminino, azul = masculino. Clique em um nó para abrir os detalhes."
+  },
+  "familyGraph": {
+    "empty": "Ainda não há pessoas nesta árvore. Adicione pessoas na visualização Árvore."
+  },
+  "noTreesModal": {
+    "title": "Bem-vindo ao Aurora!",
+    "description": "Você ainda não tem árvores genealógicas. Vamos criar a primeira!"
+  },
+  "rootUserDialog": {
+    "title": "Definir usuário raiz",
+    "description": "Selecione um usuário em relação ao qual a árvore deve ser reconstruída:",
+    "rebuildTree": "Reconstruir árvore"
+  },
+  "home": {
+    "heroTitle": "Converse com ancestrais que você nunca conheceu com a ajuda da IA",
+    "heroIntro": "Imagine compartilhar histórias novamente com sua bisavó, ver sua vida se transformar em uma linda jornada visual e guardar para sempre as memórias mais preciosas da sua família. Aurora aproxima as famílias ao longo das gerações com o calor da IA.",
+    "heroQuote": "E se você pudesse manter sua família sempre por perto?",
+    "heroBody": "Aurora cria um espaço digital acolhedor para a sua família. Construa companheiros de IA inspirados em pessoas queridas, compartilhe histórias e memórias e depois aproveite conversas emocionantes que parecem surpreendentemente reais. Transforme histórias de vida em belos relatos visuais e preserve os tesouros da sua família para as próximas gerações.",
+    "primaryCta": "Começar a jornada",
+    "demoTitle": "Comece seu primeiro chat emocionante grátis",
+    "demoDescription": "Demonstração de conversa com um ancestral gerada por IA: a avó Mary da história familiar dos anos 1920",
+    "featuresTitle": "Recursos do Aurora: reconecte-se com sua família",
+    "featuresDescription": "Viva conexões familiares acolhedoras com apoio de IA, muito além da pesquisa genealógica tradicional. Aurora cria conversas com pessoas queridas, preserva memórias por meio de narrativas visuais e ajuda você a se aproximar da herança da sua família.",
+    "howToTitle": "Como criar conexões familiares acolhedoras",
+    "howToDescription": "Criar conversas emocionantes com pessoas queridas é mais simples do que parece. Aqui está um processo de 3 passos que transforma memórias em uma experiência digital acolhedora.",
+    "futureTitle": "O futuro da história da família",
+    "futureDescription": "Continuamos evoluindo o Aurora para oferecer formas ainda mais imersivas de se conectar com seus ancestrais. Veja o que vem a seguir:"
+  },
+  "demoVideo": {
+    "title": "Veja o Aurora em ação",
+    "description": "Explore a rede genealógica e as videochamadas: conecte-se com sua família através das gerações.",
+    "iframeTitle": "Demo Aurora: rede genealógica e videochamadas",
+    "videoUnsupported": "Seu navegador não suporta a tag de vídeo."
+  },
+  "chatDemo": {
+    "name": "Vovó Mary",
+    "years": "1923-1998",
+    "message1": "Olá, meu querido! Esperei tanto tempo para te conhecer. Sua mãe falava muito de você nas cartas dela. Eu gostaria muito de ter podido te segurar no colo quando você era pequeno.",
+    "message2": "Vovó, eu nunca pude ouvir sua voz nem conhecer suas histórias. Como era crescer durante a Grande Depressão? O que você gostaria que eu soubesse sobre a nossa família?",
+    "message3": "Ah, querido, aqueles eram tempos difíceis, mas encontrávamos alegria nas pequenas coisas. Quero que você saiba que nossa família sempre foi forte. Ajudávamos os vizinhos, nunca íamos dormir brigados e sempre havia lugar à mesa para mais uma pessoa. Essa força também vive em você.",
+    "time1": "14:34",
+    "time2": "14:35",
+    "time3": "14:36",
+    "placeholder": "Digite sua mensagem...",
+    "cta": "Começar meu chat em família"
+  },
+  "familyTree": {
+    "treeTrunkAlt": "Tronco da árvore"
+  },
+  "familyTreeToolbar": {
+    "addNewPersonAria": "Adicionar nova pessoa",
+    "addPersonTitle": "Adicionar pessoa",
+    "toggleTreeAria": "Alternar árvore",
+    "toggleTreeTitle": "Alternar modo ancestrais/descendentes",
+    "toggleTreeDisabledTitle": "Indisponível ao visualizar um ramo",
+    "setRootUserAria": "Definir usuário raiz",
+    "setRootTitle": "Definir como raiz",
+    "viewingDescendants": "Vendo os descendentes de {{name}}"
+  },
+  "marketing": {
+    "featureStatuses": {
+      "available": "Disponível",
+      "newFeature": "Novo recurso",
+      "alwaysOn": "Sempre ativo",
+      "q42025": "Q4 2025"
+    },
+    "features": {
+      "items": [
+        {
+          "icon": "💬",
+          "status": "Disponível",
+          "title": "Conversas acolhedoras",
+          "description": "Converse com pessoas queridas como se estivessem sentadas ao seu lado. Nossa IA captura com carinho a voz, a personalidade e a sabedoria delas.",
+          "features": ["Fluxo natural de conversa", "Respostas personalizadas com base na vida delas", "Síntese de voz em breve"],
+          "iconBgColor": "bg-blue-100"
+        },
+        {
+          "icon": "🧠",
+          "status": "Disponível",
+          "title": "Treinamento de personalidade com IA",
+          "description": "Crie perfis detalhados de personalidade compartilhando histórias, fotos e memórias. Quanto mais você compartilha, mais realistas as conversas se tornam.",
+          "features": ["Sistema de coleta de histórias", "Mapeamento de traços de personalidade", "Integração de memórias"],
+          "iconBgColor": "bg-purple-100"
+        },
+        {
+          "icon": "🎬",
+          "status": "Novo recurso",
+          "title": "Narrativas visuais My Story",
+          "description": "Transforme histórias de vida em experiências visuais cinematográficas. A IA cria cenas bonitas com narração a partir das suas memórias.",
+          "features": ["Aprimoramento de histórias com IA", "Geração cena por cena", "Compilação de vídeo com narração"],
+          "iconBgColor": "bg-orange-100"
+        },
+        {
+          "icon": "⏰",
+          "status": "Novo recurso",
+          "title": "Mensagens em cápsula do tempo",
+          "description": "Grave mensagens em vídeo para o futuro. Deixe sabedoria para filhos que ainda não nasceram ou mensagens para datas especiais.",
+          "features": ["Armazenamento de mensagens em vídeo", "Entrega programada", "Planejamento de surpresas futuras"],
+          "iconBgColor": "bg-yellow-100"
+        },
+        {
+          "icon": "💾",
+          "status": "Novo recurso",
+          "title": "Cofre de memórias",
+          "description": "Preserve para sempre as memórias da sua família. Guarde áudios, fotos, vídeos e histórias escritas em seu cofre digital seguro.",
+          "features": ["Armazenamento de áudio e vídeo", "Coleções de fotos", "Memórias escritas e documentos"],
+          "iconBgColor": "bg-green-100"
+        },
+        {
+          "icon": "🔐",
+          "status": "Sempre ativo",
+          "title": "Privado e seguro",
+          "description": "As memórias da sua família são preciosas. Nós as protegemos com segurança de nível bancário e damos a você controle total sobre seus dados.",
+          "features": ["Criptografia ponta a ponta", "Conversas privadas em família", "Os dados são seus"],
+          "iconBgColor": "bg-red-100"
+        }
+      ]
+    },
+    "howTo": {
+      "items": [
+        {
+          "stepNumber": 1,
+          "title": "Compartilhe a história deles",
+          "description": "Conte para nós sobre essa pessoa querida: sua personalidade, suas frases favoritas, suas experiências de vida e as lembranças que você guarda. Mesmo pequenos detalhes tornam a conversa mais sincera.",
+          "features": ["Compartilhe memórias e histórias da família", "Descreva a personalidade e as particularidades", "Adicione fotos e detalhes pessoais"]
+        },
+        {
+          "stepNumber": 2,
+          "title": "A IA aprende com carinho",
+          "description": "Nossa IA estuda tudo o que você compartilhou para compreender a personalidade, o jeito de falar e a visão de mundo do seu familiar. Assim, ela aprende como essa pessoa poderia responder.",
+          "features": ["Modelagem de personalidade com IA", "Reconhecimento de padrões de fala", "Integração de contexto histórico"]
+        },
+        {
+          "stepNumber": 3,
+          "title": "Comece suas conversas!",
+          "description": "Quando o companheiro de IA estiver pronto, você poderá iniciar conversas cheias de afeto. Pergunte sobre o passado, peça conselhos ou simplesmente aproveite a troca. Cada conversa ajuda a IA a evoluir ainda mais.",
+          "features": ["Interface natural de conversa", "Perguntas sobre o passado", "Sabedoria e conselhos de família"]
+        }
+      ]
+    },
+    "future": {
+      "items": [
+        {
+          "icon": "🎥",
+          "status": "Q4 2025",
+          "title": "Conversas por vídeo com IA",
+          "description": "Veja seus ancestrais ganharem vida com respostas em vídeo geradas por IA. Observe suas expressões faciais e gestos enquanto compartilham suas histórias.",
+          "features": ["Geração realista de vídeo", "Respostas sensíveis às emoções", "Precisão histórica da época"],
+          "iconBgColor": "bg-red-100"
+        },
+        {
+          "icon": "🎤",
+          "status": "Q4 2025",
+          "title": "Replicação de voz",
+          "description": "Ouça seus ancestrais falando com suas vozes autênticas. Envie amostras de áudio para criar modelos de voz personalizados.",
+          "features": ["Clonagem de voz personalizada", "Preservação de sotaque", "Correspondência de tom emocional"],
+          "iconBgColor": "bg-purple-100"
+        },
+        {
+          "icon": "🌳",
+          "status": "Q4 2025",
+          "title": "Árvore genealógica interativa",
+          "description": "Explore a história da sua família por meio de uma árvore genealógica interativa e imersiva. Clique em qualquer ancestral e comece uma conversa imediatamente.",
+          "features": ["Navegação visual pela família", "Integração com linha do tempo", "Mapeamento de relações"],
+          "iconBgColor": "bg-green-100"
+        }
+      ]
+    }
+  },
+  "story": {
+    "signInRequired": "Faça login para criar sua história.",
+    "title": "Minha história",
+    "heroDescription": "Transforme uma história de vida em um vídeo narrado. Crie um legado digital para as futuras gerações.",
+    "heroHint": "Você não está apenas preenchendo um formulário, está preservando uma voz.",
+    "sectionStoryTitle": "Sua história",
+    "sectionStoryDescription": "Compartilhe uma história de vida ou biografia. Nós a transformaremos em cenas e narração.",
+    "storyTitleLabel": "Título da história (opcional)",
+    "storyTitlePlaceholder": "Por exemplo, A infância da vovó",
+    "storySubjectLabel": "De quem é esta história? (opcional)",
+    "storySubjectPlaceholder": "Nome da pessoa sobre quem esta história fala",
+    "storyBodyLabel": "História de vida / biografia",
+    "storyBodyPlaceholder": "Escreva a história que você quer preservar: memórias, momentos marcantes e tudo o que as futuras gerações devem saber...",
+    "creating": "Criando...",
+    "createButton": "Criar minha história",
+    "createError": "Não foi possível criar a história.",
+    "loadStatusError": "Não foi possível carregar o status",
+    "sectionScenesTitle": "Prévia das cenas",
+    "sectionScenesDescription": "Os momentos principais da sua história. As cenas aparecerão conforme o pipeline as gerar.",
+    "sceneLabel": "Cena {{index}}",
+    "scenesHelper": "A prévia das cenas aparecerá aqui quando o pipeline as tiver gerado.",
+    "sectionProgressTitle": "Geração do vídeo",
+    "sectionProgressDescription": "Seu vídeo narrado está sendo criado. Isso pode levar alguns minutos.",
+    "statusLabel": "Status: {{status}}{{progress}}",
+    "sectionVideoTitle": "Seu vídeo",
+    "sectionVideoDescription": "Veja sua história ganhar vida com narração e cenas.",
+    "videoPending": "Seu vídeo aparecerá aqui quando a geração for concluída.",
+    "statuses": {
+      "queued": "Na fila",
+      "processing": "Processando",
+      "ready": "Pronto",
+      "failed": "Falhou"
+    }
+  },
+  "personForm": {
+    "editPerson": "Editar pessoa",
+    "addNewPerson": "Adicionar nova pessoa",
+    "addYourself": "Adicionar você",
+    "relationship": "Relacionamento *",
+    "relationshipIs": "É *",
+    "relationshipOf": "De *",
+    "selectRelationshipFirst": "Selecione primeiro o relacionamento",
+    "basicInformation": "Informações básicas",
+    "firstName": "Nome *",
+    "lastName": "Sobrenome *",
+    "middleName": "Nome do meio",
+    "gender": "Gênero",
+    "selectGender": "Selecione o gênero",
+    "birthDate": "Data de nascimento",
+    "deathDate": "Data de falecimento",
+    "dateOfBirth": "Data de nascimento",
+    "dateOfDeath": "Data de falecimento",
+    "photoUrl": "URL da foto",
+    "photoUrlPlaceholder": "https://example.com/photo.jpg",
+    "biography": "Biografia",
+    "biographyPlaceholder": "Conte-nos sobre esta pessoa...",
+    "biographySelfPlaceholder": "Conte-nos sobre você...",
+    "hobbies": "Hobbies",
+    "hobbiesPlaceholder": "Liste hobbies e interesses...",
+    "hobbiesSelfPlaceholder": "Liste seus hobbies e interesses...",
+    "qualities": "Qualidades",
+    "openness": "Abertura (0-100)",
+    "conscientiousness": "Conscienciosidade (0-100)",
+    "extraversion": "Extroversão (0-100)",
+    "agreeableness": "Amabilidade (0-100)",
+    "neuroticism": "Neuroticismo (0-100)",
+    "formality": "Formalidade (0-100)",
+    "religion": "Religião",
+    "religiosity": "Religiosidade (0-100)",
+    "passions": "Paixões",
+    "senseOfHumor": "Senso de humor",
+    "positivity": "Positividade (0-100)",
+    "relationshipOptions": {
+      "father": "Pai",
+      "mother": "Mãe",
+      "son": "Filho",
+      "daughter": "Filha",
+      "spouse": "Cônjuge"
+    },
+    "validation": {
+      "fillRequiredNames": "Preencha nome e sobrenome",
+      "selectRelationshipAndPerson": "Selecione um relacionamento e uma pessoa relacionada",
+      "selectPerson": "Selecione uma pessoa",
+      "selectRelationshipTypeAndPerson": "Selecione um tipo de relacionamento e uma pessoa",
+      "selectRelationshipType": "Selecione um tipo de relacionamento (pai, mãe, filho, filha ou cônjuge)",
+      "tooManyParents": "Esta pessoa já tem {{count}} responsável(is). Não é possível adicionar mais.",
+      "cannotAddChildrenToRoot": "Não é possível adicionar filhos à pessoa raiz ({{name}}). A pessoa raiz é a pessoa principal da árvore e não pode ter filhos."
+    }
+  },
+  "personDetails": {
+    "basicInformation": "Informações básicas",
+    "parents": "Pais",
+    "biography": "Biografia",
+    "hobbies": "Hobbies",
+    "qualities": "Qualidades",
+    "photo": "Foto",
+    "dateOfBirth": "Data de nascimento",
+    "dateOfDeath": "Data de falecimento",
+    "gender": "Gênero",
+    "openness": "Abertura",
+    "conscientiousness": "Conscienciosidade",
+    "extraversion": "Extroversão",
+    "agreeableness": "Amabilidade",
+    "neuroticism": "Neuroticismo",
+    "religion": "Religião",
+    "passions": "Paixões",
+    "chat": "Chat",
+    "voiceCall": "Chamada de voz",
+    "videoCall": "Chamada de vídeo",
+    "editAria": "Editar",
+    "deleteAria": "Excluir",
+    "confirmDeletion": "Confirmar exclusão",
+    "confirmDeletionMessage": "Tem certeza de que deseja excluir {{name}}?",
+    "deleteAncestorsWarning": "Aviso: os seguintes ancestrais também serão excluídos:"
+  }
+}

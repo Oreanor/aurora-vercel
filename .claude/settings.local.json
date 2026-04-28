@@ -1,0 +1,23 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(grep -E \"\\\\.\\(mjs|config|rc|json\\)$\")",
+      "Bash(xargs -I {} basename {})",
+      "Bash(npx tsc *)",
+      "Bash(npm run *)",
+      "WebSearch",
+      "WebFetch(domain:docs.simli.com)",
+      "WebFetch(domain:ai.google.dev)",
+      "WebFetch(domain:github.com)",
+      "Bash(npm install *)",
+      "Bash(node *)",
+      "Bash(npx prisma *)",
+      "Bash(DATABASE_URL=\"file:./dev.db\" npx prisma migrate dev --name init)",
+      "Bash(DATABASE_URL=\"file:./dev.db\" npx prisma migrate dev --name init --force-reset)",
+      "Bash(DATABASE_URL=\"file:../dev.db\" npx prisma migrate dev --name init)",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(git rm *)"
+    ]
+  }
+}
