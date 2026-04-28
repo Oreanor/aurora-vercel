@@ -17,7 +17,9 @@
       "Bash(DATABASE_URL=\"file:../dev.db\" npx prisma migrate dev --name init)",
       "Bash(git add *)",
       "Bash(git commit *)",
-      "Bash(git rm *)"
+      "Bash(git rm *)",
+      "Bash(npm show *)",
+      "Bash(npm audit *)"
     ]
   }
 }
